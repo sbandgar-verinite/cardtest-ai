@@ -14,7 +14,7 @@ public class ProjectServiceImpl implements ProjectService {
 
 	@Autowired
 	private ProjectRepository projectRepository;
-	
+
 	@Override
 	public Project addProject(Project project) {
 		return projectRepository.save(project);
@@ -33,6 +33,11 @@ public class ProjectServiceImpl implements ProjectService {
 	@Override
 	public List<Project> findAllProject() {
 		return projectRepository.findAll();
+	}
+
+	@Override
+	public void deleteProject(String id) {
+		projectRepository.deleteById(id);
 	}
 
 }
