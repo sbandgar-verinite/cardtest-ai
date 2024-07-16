@@ -24,7 +24,8 @@ public class LlamaAiServiceImpl implements LlamaAiService {
 	@Override
 	public GherkinFormat generateMessage(String promptMessage, String count) {
 		logger.info("Received message : " + promptMessage);
-		String str = "generate {count} test cases in gherkin format as same with(Feature: , Scenario: (without count), GIVEN, WHEN, AND, THEN statements with predefined values in line) for {message}";
+//		String str = "generate {count} test cases in gherkin format as same with(Feature: , Scenario: (without count), GIVEN, WHEN, AND, THEN statements with predefined values in line) for {message}";
+		String str = "generate {count} test cases in gherkin format (single liner FEATURE, SCENARIO (without count), GIVEN, WHEN, AND, THEN statements with predefined values) for {message}";
 		PromptTemplate template = new PromptTemplate(str, Map.of("message", promptMessage, "count", count));
 		Prompt genMessage = template.create();
 		logger.info("Generated message : " + genMessage.getContents());
