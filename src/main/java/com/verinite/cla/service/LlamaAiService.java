@@ -4,6 +4,6 @@ import com.verinite.cla.dto.GherkinFormat;
 
 public interface LlamaAiService {
 
-	GherkinFormat generateMessage(String prompt);
+	GherkinFormat generateMessage(String prompt, String count);
 
 }

@@ -19,9 +19,12 @@ public class ExternalController {
 	private LlamaAiService llamaAiService;
 
 	@GetMapping("api/v1/ai/generate")
-	public ResponseEntity<GherkinFormat> generate(
-			@RequestParam(value = "promptMessage", defaultValue = "Why is the sky blue?") String promptMessage) {
-		final GherkinFormat aiResponse = llamaAiService.generateMessage(promptMessage);
+	public ResponseEntity<GherkinFormat> generate(@RequestParam(value = "promptMessage") String promptMessage,
+			@RequestParam(value = "count", defaultValue = "") String count) throws Exception {
+		if (promptMessage == null) {
+			throw new Exception("Please enter a valid prompt message");
+		}
+		final GherkinFormat aiResponse = llamaAiService.generateMessage(promptMessage, count);
 		return ResponseEntity.status(HttpStatus.OK).body(aiResponse);
 	}
 }
