@@ -58,13 +58,13 @@ public class SetupController {
 	}
 
 	@RequestMapping(value = "/tenants/{tenantId}/projects/{projectId}/runplans", method = RequestMethod.POST)
-	public String createRunPLan(@PathVariable String projectId) throws ParseException {
+	public String createRunPLan(@PathVariable String tenantId,@PathVariable String projectId) throws ParseException {
 		setupService.createRunPlanForProject(projectId);
 		return "";
 	}
 
 	@RequestMapping(value = "/tenants/{tenantId}/projects/{projectId}/runplans", method = RequestMethod.GET)
-	public List<RunPlan> getAllRunPLan(@PathVariable String projectId) throws ParseException {
+	public List<RunPlan> getAllRunPLan(@PathVariable String tenantId,@PathVariable String projectId) throws ParseException {
 		return runPlanService.findAllRunPlanByProjectId(projectId);
 	}
 
