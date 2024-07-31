@@ -73,7 +73,7 @@ public class SetupController {
 			@PathVariable String runPlanId) throws TemplateNotFoundException, MalformedTemplateNameException,
 			freemarker.core.ParseException, IOException, TemplateException {
 		setupService.createFeatureFile(tenantId, projectId, runPlanId);
-		return "Success";
+		return "Success"; 
 	}
 	
 	@RequestMapping(value = "/tenants/{tenantId}/projects/{projectId}/runplans/{runPlanId}/feature-files/upload-git", method = RequestMethod.GET)
