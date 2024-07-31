@@ -40,7 +40,7 @@ public class ExcelDataServiceImpl implements ExcelDataService {
 	@Override
 	public boolean importDataFromExcel() {
 		List<RunData> runDataList = new ArrayList<>();
-		File file = new File("exam.xlsx");
+		File file = new File("example.xlsx");
 //		  ClassPathResource resource = new ClassPathResource("example.xlsx");
 //		  if (!resource.exists()) {
 //	            return false; 

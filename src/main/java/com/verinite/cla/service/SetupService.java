@@ -283,10 +283,10 @@ public class SetupService {
 				for (String givenTemplate : scenario.getGivenStatements()) {
 					if(givenCount == 0) {
 						givenCount++;
-						givenTemplate = "    GIVEN " + givenTemplate;
+						givenTemplate = "    Given " + givenTemplate;
 					}
 					else {
-						givenTemplate = "    AND " + givenTemplate;
+						givenTemplate = "    And " + givenTemplate;
 					}
 						
 					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-" + scenarioCode + "-GIVEN";
@@ -295,10 +295,10 @@ public class SetupService {
 				for (String whenTemplate : scenario.getWhenConditions()) {
 					if(whenCount == 0) {
 						whenCount++;
-						whenTemplate = "    WHEN " + whenTemplate;
+						whenTemplate = "    When " + whenTemplate;
 					}
 					else {
-						whenTemplate = "    AND " + whenTemplate;
+						whenTemplate = "    And " + whenTemplate;
 					}
 					
 					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-" + scenarioCode + "-WHEN";
@@ -307,10 +307,10 @@ public class SetupService {
 				for (String thenTemplate : scenario.getThenOutcomes()) {
 					if(thenCount == 0) {
 						thenCount++;
-						thenTemplate = "    THEN " + thenTemplate;
+						thenTemplate = "    Then " + thenTemplate;
 					}
 					else {
-						thenTemplate = "    AND " + thenTemplate;
+						thenTemplate = "    And " + thenTemplate;
 					}
 					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-" + scenarioCode + "-THEN";
 					templateService.createRunScenarioFile(runPlan.getId(), templateName, thenTemplate, featureData);
@@ -351,10 +351,12 @@ public class SetupService {
 		
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-		headers.setBearerAuth("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");
+//		headers.setBearerAuth("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");
+		headers.setBearerAuth("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");
 		HttpEntity<String> entity = new HttpEntity<String>(headers);
 		
-		ResponseEntity<List<Map<String, Object>>> responseEntity = restTemplate.exchange("https://api.github.com/repos/sankhadeep0/card-launch-accelerator/contents/src/test/resources/features/search", 
+		String baseURL = "https://api.github.com/repos/sbandgar-verinite/automation-scripts/contents/src/test/resources/features";
+		ResponseEntity<List<Map<String, Object>>> responseEntity = restTemplate.exchange(baseURL, 
 				HttpMethod.GET, 
 				entity, 
 				new ParameterizedTypeReference<List<Map<String, Object>>>() {}
@@ -365,10 +367,19 @@ public class SetupService {
 		String url = (String) entities.get(0).get("url");
 		System.out.println("SHA & URL: " + sha + " " + url);
 		
+		baseURL += "/" + runPlanId + ".feature?ref=main";
+		
 		JSONObject bodyParam = new JSONObject();
 		JSONObject committer = new JSONObject();
-		committer.put("name", "Sankhadeep Chakraborty");
-		committer.put("email", "sankhadeep.chakraborty@verinite.com");
+//		committer.put("name", "Sankhadeep Chakraborty");
+//		committer.put("email", "sankhadeep.chakraborty@verinite.com");
+//		bodyParam.put("message", "Commit for Project" + Math.random());
+//		bodyParam.put("content", encodedFileContent);
+//		bodyParam.put("sha", sha);
+//		bodyParam.put("branch", "main");
+//		bodyParam.put("committer", committer);
+		committer.put("name", "Sumeet Bandgar");
+		committer.put("email", "sumeet.bandgar@verinite.com");
 		bodyParam.put("message", "Commit for Project" + Math.random());
 		bodyParam.put("content", encodedFileContent);
 		bodyParam.put("sha", sha);
@@ -379,10 +390,11 @@ public class SetupService {
 		
 		HttpHeaders headers1 = new HttpHeaders();
 		headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-		headers1.setBearerAuth("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");
+//		headers1.setBearerAuth("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");
+		headers1.setBearerAuth("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");
 		HttpEntity<String> entity1 = new HttpEntity<String>(bodyParam.toString(), headers1);
 		
-		ResponseEntity<Object> responseEntity1 = restTemplate.exchange(url, 
+		ResponseEntity<Object> responseEntity1 = restTemplate.exchange(baseURL, 
 				HttpMethod.PUT, 
 				entity1, 
 				new ParameterizedTypeReference<Object>() {}
@@ -431,7 +443,7 @@ public class SetupService {
 		headerst.set("Cookie", respHeader.get("Set-Cookie").get(0));
 		HttpEntity<String> entityt = new HttpEntity<String>(headerst);
 		
-		ResponseEntity<Map<String,Object>> responseEntityt = restTemplate.exchange("http://localhost:8080/job/CardTest.Ai Pipeline/build", 
+		ResponseEntity<Map<String,Object>> responseEntityt = restTemplate.exchange("http://localhost:8080/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId, 
 				HttpMethod.POST, 
 				entityt, 
 				new ParameterizedTypeReference<Map<String,Object>>() {}

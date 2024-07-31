@@ -40,4 +40,8 @@ public class RunDataServiceImpl implements RunDataService {
 		return runDataRepository.getRunDataByCode(code);
 	}
 
+	@Override
+	public List<RunData> findRunDataByCodeAndScenarioCode(String code, String scenarioCode) {
+		return runDataRepository.getRunDataByCodeAndScenarioCode(code, scenarioCode);
+	}
 }

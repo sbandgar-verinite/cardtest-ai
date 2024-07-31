@@ -18,4 +18,6 @@ spring:
       chat:
         model: llama3
         options:
+          keep-alive: 10m
           temperature: 1
+    

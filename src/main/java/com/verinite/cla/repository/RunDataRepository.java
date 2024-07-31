@@ -8,5 +8,7 @@ import com.verinite.cla.entity.RunData;
 public interface RunDataRepository extends JpaRepository<RunData, String> {
 
 	List<RunData> getRunDataByCode(String code);
+	
+	List<RunData> getRunDataByCodeAndScenarioCode(String code, String scenarioCode);
 
 }

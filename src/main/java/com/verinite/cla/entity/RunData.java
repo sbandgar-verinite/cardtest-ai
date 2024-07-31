@@ -22,6 +22,7 @@ public class RunData {
 	@Column(name="id", columnDefinition="VARCHAR(255)")
 	private String id;
 	private String code;
+	private String scenarioCode;
 	private String entityName;
 	@Type(JsonStringType.class)
 	private Map<String, String> attributes = new HashMap<String, String>();
@@ -69,7 +70,13 @@ public class RunData {
 	public void setAttributes(Map<String, String> attributes) {
 		this.attributes = attributes;
 	}
-	
-	
+
+	public String getScenarioCode() {
+		return scenarioCode;
+	}
+
+	public void setScenarioCode(String scenarioCode) {
+		this.scenarioCode = scenarioCode;
+	}
 	
 }

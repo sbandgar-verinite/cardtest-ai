@@ -16,4 +16,6 @@ public interface RunDataService {
 	public List<RunData> findAllRunData();
 	
 	public List<RunData> findRunDataByCode(String code);
+	
+	public List<RunData> findRunDataByCodeAndScenarioCode(String code, String scenarioCode);
 }

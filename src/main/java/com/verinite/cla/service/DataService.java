@@ -22,8 +22,8 @@ public class DataService {
 	public Map<String, Object> generateData(List<String> entitiesRequired, String featureCode, String scenarioCode) {
 		
 		List<RunData> runData = new ArrayList<>();
-		runData = runDataService.findRunDataByCode(featureCode);
-		
+//		runData = runDataService.findRunDataByCode(featureCode);
+		runData = runDataService.findRunDataByCodeAndScenarioCode(featureCode, scenarioCode);
 		Map<String, Object> featureData = new HashMap<>();
 		if (runData != null) {
 			System.out.println("Rundata list: " + runData.size());
