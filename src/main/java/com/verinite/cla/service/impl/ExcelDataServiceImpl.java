@@ -52,6 +52,7 @@ public class ExcelDataServiceImpl implements ExcelDataService {
 
 				// Find column indices
 				int codeColIdx = findColumnIndex(headerRow, "code");
+				int scenarioCodeColIdx = findColumnIndex(headerRow, "scenario_code");
 				int entityNameColIdx = findColumnIndex(headerRow, "entity_name");
 				int attributesColIdx = findColumnIndex(headerRow, "attributes");
 
@@ -62,6 +63,7 @@ public class ExcelDataServiceImpl implements ExcelDataService {
 						runData.setCode(getCellValue(row, codeColIdx));
 						runData.setEntityName(getCellValue(row, entityNameColIdx));
 						runData.setAttributes(parseAttributes(getCellValue(row, attributesColIdx)));
+						runData.setScenarioCode(getCellValue(row, scenarioCodeColIdx));
 						runDataList.add(runData);
 					}
 				}
