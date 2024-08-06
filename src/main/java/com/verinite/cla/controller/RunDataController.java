@@ -2,9 +2,11 @@ package com.verinite.cla.controller;
 
 import java.util.List;
 
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -39,5 +41,10 @@ public class RunDataController {
 	@RequestMapping(value = "/", method=RequestMethod.PUT)
 	public RunData updateRunData(@RequestBody RunData runData) {
 		return runDataService.updateRunData(runData);
+	}
+	
+	@PostMapping(value = "/feature/{id}/generate")
+	public Object generateData(@PathVariable String id) throws BadRequestException {
+		return runDataService.generateData(id);
 	}
 }

@@ -2,6 +2,8 @@ package com.verinite.cla.service;
 
 import java.util.List;
 
+import org.apache.coyote.BadRequestException;
+
 import com.verinite.cla.entity.RunData;
 
 
@@ -18,4 +20,6 @@ public interface RunDataService {
 	public List<RunData> findRunDataByCode(String code);
 	
 	public List<RunData> findRunDataByCodeAndScenarioCode(String code, String scenarioCode);
+
+	public Object generateData(String featureId) throws BadRequestException;
 }

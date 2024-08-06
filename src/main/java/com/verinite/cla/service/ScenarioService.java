@@ -15,4 +15,6 @@ public Scenario addScenario(Scenario scenario);
 	public List<Scenario> findAllScenario();
 
 	public Scenario findScenarioByCode(String code);
+
+	public List<Scenario> findAllScenarios(List<String> scenarios);
 }

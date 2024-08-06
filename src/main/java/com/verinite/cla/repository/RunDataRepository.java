@@ -11,4 +11,6 @@ public interface RunDataRepository extends JpaRepository<RunData, String> {
 	
 	List<RunData> getRunDataByCodeAndScenarioCode(String code, String scenarioCode);
 
+	void deleteByCode(String featureId);
+
 }

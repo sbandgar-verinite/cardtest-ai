@@ -24,7 +24,7 @@ public class ScenarioServiceImpl implements ScenarioService {
 	public Scenario updateScenario(Scenario scenario) {
 		return scenarioRepository.save(scenario);
 	}
-
+	
 	@Override
 	public Scenario findScenarioById(String id) {
 		return scenarioRepository.findById(id).orElse(null);
@@ -38,6 +38,11 @@ public class ScenarioServiceImpl implements ScenarioService {
 	@Override
 	public Scenario findScenarioByCode(String code) {
 		return scenarioRepository.getScenarioByCode(code);
+	}
+
+	@Override
+	public List<Scenario> findAllScenarios(List<String> scenarios) {
+		return scenarioRepository.findAllByScenarios(scenarios);
 	}
 
 }
