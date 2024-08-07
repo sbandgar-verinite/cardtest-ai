@@ -1,7 +1,13 @@
 package com.verinite.cla.service.impl;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -9,13 +15,12 @@ import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.repository.RunPlanRepository;
 import com.verinite.cla.service.RunPlanService;
 
-
 @Service
 public class RunPlanServiceImpl implements RunPlanService {
 
 	@Autowired
 	private RunPlanRepository runPlanRepository;
-	
+
 	@Override
 	public RunPlan addRunPlan(RunPlan runPlan) {
 		return runPlanRepository.save(runPlan);
@@ -35,10 +40,28 @@ public class RunPlanServiceImpl implements RunPlanService {
 	public List<RunPlan> findAllRunPlan() {
 		return runPlanRepository.findAll();
 	}
-	
+
 	@Override
 	public List<RunPlan> findAllRunPlanByProjectId(String projectId) {
 		return runPlanRepository.getAllRunPlanByProjectId(projectId);
+	}
+
+	@Override
+	public String fetchRunPlan(String runPlanId) throws BadRequestException {
+		Optional<RunPlan> runPlan = runPlanRepository.findById(runPlanId);
+		if (runPlan.isEmpty()) {
+			throw new BadRequestException("Run Plan Not Found");
+		}
+
+		Path path = Paths.get(runPlanId + ".txt");
+		String content = "";
+		try {
+			content = new String(Files.readAllBytes(path));
+			System.out.println(content);
+		} catch (IOException e) {
+			throw new BadRequestException("File Not Found : " + e.getMessage());
+		}
+		return content;
 	}
 
 }

@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
@@ -41,6 +42,9 @@ public class RunDataServiceImpl implements RunDataService {
 
 	@Autowired
 	private ScenarioService scenarioService;
+
+	@Value("${data.gen.service.baseUrl}")
+	private String dgBaseUrl;
 
 	@Override
 	public RunData addRunData(RunData runData) {
@@ -100,8 +104,8 @@ public class RunDataServiceImpl implements RunDataService {
 		Pattern pattern = Pattern.compile(regex);
 
 		Map<String, JsonNode> reqObj = createInputRequestForDG(steps, pattern);
-		JsonNode response = restTemplate.postForObject("http://localhost:8089/api/dg/v1/project/1/generate?output=json",
-				reqObj, JsonNode.class);
+		JsonNode response = restTemplate.postForObject(dgBaseUrl + "/api/dg/v1/project/1/generate?output=json", reqObj,
+				JsonNode.class);
 
 		runDataRepository.deleteByCode(featureId);
 		for (Scenario scenario : scenarioList) {

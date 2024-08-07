@@ -443,10 +443,16 @@ public class SetupService {
 		headerst.set("Cookie", respHeader.get("Set-Cookie").get(0));
 		HttpEntity<String> entityt = new HttpEntity<String>(headerst);
 		
-		ResponseEntity<Map<String,Object>> responseEntityt = restTemplate.exchange("http://localhost:8080/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId, 
+//		ResponseEntity<Map<String,Object>> responseEntityt = restTemplate.exchange("http://localhost:8080/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId, 
+//				HttpMethod.POST, 
+//				entityt, 
+//				new ParameterizedTypeReference<Map<String,Object>>() {}
+//		);
+		
+		ResponseEntity<String> responseEntityt = restTemplate.exchange("http://localhost:8080/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId, 
 				HttpMethod.POST, 
 				entityt, 
-				new ParameterizedTypeReference<Map<String,Object>>() {}
+				String.class
 		);
 		
 		HttpHeaders respHeaders = responseEntityt.getHeaders();

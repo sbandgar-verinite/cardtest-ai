@@ -4,10 +4,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.verinite.cla.entity.EntityDefinition;
@@ -20,23 +22,23 @@ public class EntityDefinitionController {
 
 	@Autowired
 	private EntityDefinitionService entityDefinitionService;
-	
-	@RequestMapping(value = "/", method=RequestMethod.POST)
+
+	@PostMapping
 	public EntityDefinition addNewEntityDefinition(@RequestBody EntityDefinition entityDefinition) {
 		return entityDefinitionService.addEntityDefinition(entityDefinition);
 	}
-	
-	@RequestMapping(value = "/", method=RequestMethod.GET)
+
+	@GetMapping
 	public List<EntityDefinition> fetchAllEntityDefinitions() {
 		return entityDefinitionService.findAllEntityDefinition();
 	}
-	
-	@RequestMapping(value = "/{id}", method=RequestMethod.GET)
-	public EntityDefinition fetchEntityDefinitionById(@PathVariable ("id") String entityDefinitionId) {
+
+	@GetMapping(value = "/{id}")
+	public EntityDefinition fetchEntityDefinitionById(@PathVariable("id") String entityDefinitionId) {
 		return entityDefinitionService.findEntityDefinitionById(entityDefinitionId);
 	}
-	
-	@RequestMapping(value = "/", method=RequestMethod.PUT)
+
+	@PutMapping
 	public EntityDefinition updateEntityDefinition(@RequestBody EntityDefinition entityDefinition) {
 		return entityDefinitionService.updateEntityDefinition(entityDefinition);
 	}

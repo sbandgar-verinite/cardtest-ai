@@ -5,11 +5,12 @@ import java.util.List;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.verinite.cla.entity.RunData;
@@ -22,27 +23,27 @@ public class RunDataController {
 
 	@Autowired
 	private RunDataService runDataService;
-	
-	@RequestMapping(value = "/", method=RequestMethod.POST)
+
+	@PostMapping
 	public RunData addNewRunData(@RequestBody RunData runData) {
 		return runDataService.addRunData(runData);
 	}
-	
-	@RequestMapping(value = "/", method=RequestMethod.GET)
+
+	@GetMapping
 	public List<RunData> fetchAllRunDatas() {
 		return runDataService.findAllRunData();
 	}
-	
-	@RequestMapping(value = "/{id}", method=RequestMethod.GET)
-	public RunData fetchRunDataById(@PathVariable ("id") String runDataId) {
+
+	@GetMapping(value = "/{id}")
+	public RunData fetchRunDataById(@PathVariable("id") String runDataId) {
 		return runDataService.findRunDataById(runDataId);
 	}
-	
-	@RequestMapping(value = "/", method=RequestMethod.PUT)
+
+	@PutMapping
 	public RunData updateRunData(@RequestBody RunData runData) {
 		return runDataService.updateRunData(runData);
 	}
-	
+
 	@PostMapping(value = "/feature/{id}/generate")
 	public Object generateData(@PathVariable String id) throws BadRequestException {
 		return runDataService.generateData(id);

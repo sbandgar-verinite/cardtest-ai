@@ -4,10 +4,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.verinite.cla.entity.Scenario;
@@ -20,23 +22,23 @@ public class ScenarioController {
 
 	@Autowired
 	private ScenarioService scenarioService;
-	
-	@RequestMapping(value = "/", method=RequestMethod.POST)
+
+	@PostMapping
 	public Scenario addNewScenario(@RequestBody Scenario scenario) {
 		return scenarioService.addScenario(scenario);
 	}
-	
-	@RequestMapping(value = "/", method=RequestMethod.GET)
+
+	@GetMapping
 	public List<Scenario> fetchAllScenarios() {
 		return scenarioService.findAllScenario();
 	}
-	
-	@RequestMapping(value = "/{id}", method=RequestMethod.GET)
-	public Scenario fetchScenarioById(@PathVariable ("id") String scenarioId) {
+
+	@GetMapping(value = "/{id}")
+	public Scenario fetchScenarioById(@PathVariable("id") String scenarioId) {
 		return scenarioService.findScenarioById(scenarioId);
 	}
-	
-	@RequestMapping(value = "/", method=RequestMethod.PUT)
+
+	@PutMapping
 	public Scenario updateScenario(@RequestBody Scenario scenario) {
 		return scenarioService.updateScenario(scenario);
 	}
