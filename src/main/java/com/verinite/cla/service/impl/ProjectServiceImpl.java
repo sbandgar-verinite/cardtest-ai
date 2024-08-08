@@ -1,10 +1,14 @@
 package com.verinite.cla.service.impl;
 
+import java.sql.Date;
 import java.util.List;
+import java.util.Objects;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.verinite.cla.dto.ProjectDto;
 import com.verinite.cla.entity.Project;
 import com.verinite.cla.repository.ProjectRepository;
 import com.verinite.cla.service.ProjectService;
@@ -15,14 +19,45 @@ public class ProjectServiceImpl implements ProjectService {
 	@Autowired
 	private ProjectRepository projectRepository;
 
+	@Autowired
+	private ModelMapper modelMapper;
+
 	@Override
 	public Project addProject(Project project) {
 		return projectRepository.save(project);
 	}
 
 	@Override
-	public Project updateProject(Project project) {
-		return projectRepository.save(project);
+	public Project updateProject(ProjectDto project) {
+		if (project != null && project.getId() != null) {
+			Project proj = findProjectById(project.getId());
+			if (project.getAttributes() != null) {
+				proj.setAttributes(project.getAttributes());
+			}
+			if (project.getBillingCycleSelectionCriteria() != null) {
+				proj.setBillingCycleSelectionCriteria(project.getBillingCycleSelectionCriteria());
+			}
+			if (!Objects.isNull(project.getDueDays())) {
+				proj.setDueDays(project.getDueDays());
+			}
+			if (project.getFeatures() != null) {
+				proj.setFeatures(project.getFeatures());
+			}
+			if (project.getName() != null) {
+				proj.setName(project.getName());
+			}
+			if (project.getStartDate() != null) {
+				proj.setStartDate(project.getStartDate());
+			}
+			if (project.getTenantId() != null) {
+				proj.setTenantId(project.getTenantId());
+			}
+			if (project.getValidBillingCycles() != null && !project.getValidBillingCycles().isEmpty()) {
+				proj.setValidBillingCycles(project.getValidBillingCycles());
+			}
+			return projectRepository.save(proj);
+		}
+		return null;
 	}
 
 	@Override

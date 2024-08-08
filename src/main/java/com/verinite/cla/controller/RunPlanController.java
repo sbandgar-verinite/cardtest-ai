@@ -2,7 +2,6 @@ package com.verinite.cla.controller;
 
 import java.util.List;
 
-import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.verinite.cla.entity.RunPlan;
@@ -45,7 +45,7 @@ public class RunPlanController {
 	}
 
 	@GetMapping(value = "/{id}/feature")
-	public String fetchRunPlan(@PathVariable("id") String runPlanId) throws BadRequestException {
-		return runPlanService.fetchRunPlan(runPlanId);
+	public String fetchRunPlan(@PathVariable("id") String runPlanId, @RequestParam String scenarioType) throws Exception {
+		return runPlanService.fetchRunPlan(runPlanId, scenarioType);
 	}
 }

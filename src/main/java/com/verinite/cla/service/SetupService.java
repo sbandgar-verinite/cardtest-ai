@@ -25,6 +25,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.collect.LinkedHashMultimap;
@@ -66,10 +67,10 @@ public class SetupService {
 
 	@Autowired
 	private TemplateService templateService;
-	
+
 	@Autowired
 	private DataService dataService;
-	
+
 	@Autowired
 	private RestTemplate restTemplate;
 
@@ -95,7 +96,7 @@ public class SetupService {
 		project.setName(projectDto.getName());
 		project.setTenantId(projectDto.getTenantId());
 		SimpleDateFormat df = new SimpleDateFormat("dd-mm-yyyy");
-		project.setStartDate(new Date(df.parse(projectDto.getStartDate()).getTime()));
+		project.setStartDate(new Date(projectDto.getStartDate().getTime()));
 		project.setValidBillingCycles(projectDto.getValidBillingCycles());
 		project.setFeatures(projectDto.getFeatures());
 		project.setBillingCycleSelectionCriteria(projectDto.getBillingCycleSelectionCriteria());
@@ -253,122 +254,134 @@ public class SetupService {
 		preRunScenarios = runPlan.getPreRunScripts();
 		String outFeatureCode = "";
 
-//		List<RunScenario> postRunScenarios = new ArrayList<>();
-//		postRunScenarios = runPlan.getPostRunScripts();
+		List<RunScenario> postRunScenarios = new ArrayList<>();
+		postRunScenarios = runPlan.getPostRunScripts();
 
 		for (RunScenario preRunScenario : preRunScenarios) {
 			List<String> scenarioCodes = preRunScenario.getScenarios();
-			if(!outFeatureCode.equals(preRunScenario.getFeatureCode()) & scenarioCodes.size()>0) {
+			if (!outFeatureCode.equals(preRunScenario.getFeatureCode()) & scenarioCodes.size() > 0) {
 				outFeatureCode = preRunScenario.getFeatureCode();
 				String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-FEATURE";
-				templateService.createRunScenarioFile(runPlan.getId(), templateName, "Feature: " + preRunScenario.getFeatureCode() , null);
+				templateService.createRunScenarioFile(runPlan.getId() + "-pre", templateName,
+						"Feature: " + preRunScenario.getFeatureCode(), null);
 			}
-			
+
 			String outScenarioCode = "";
-			
+
 			for (String scenarioCode : scenarioCodes) {
-				if(!outScenarioCode.equals(scenarioCode)) {
+				if (!outScenarioCode.equals(scenarioCode)) {
 					outScenarioCode = scenarioCode;
-					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-" + scenarioCode + "-SCENARIO";
-					templateService.createRunScenarioFile(runPlan.getId(), templateName, "Scenario: " + scenarioCode , null);
+					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+							+ scenarioCode + "-SCENARIO";
+					templateService.createRunScenarioFile(runPlan.getId() + "-pre", templateName,
+							"Scenario: " + scenarioCode, null);
 				}
 				Scenario scenario = scenarioService.findScenarioByCode(scenarioCode);
 				Map<String, Object> featureData = new HashMap<>();
-				featureData = dataService.generateData(scenario.getEntitiesRequired(), preRunScenario.getFeatureCode(), scenarioCode);
-				
-				int givenCount = 0; 
+				featureData = dataService.generateData(scenario.getEntitiesRequired(), preRunScenario.getFeatureCode(),
+						scenarioCode);
+
+				int givenCount = 0;
 				int whenCount = 0;
 				int thenCount = 0;
-				
+
 				for (String givenTemplate : scenario.getGivenStatements()) {
-					if(givenCount == 0) {
+					if (givenCount == 0) {
 						givenCount++;
 						givenTemplate = "    Given " + givenTemplate;
-					}
-					else {
+					} else {
 						givenTemplate = "    And " + givenTemplate;
 					}
-						
-					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-" + scenarioCode + "-GIVEN";
-					templateService.createRunScenarioFile(runPlan.getId(), templateName, givenTemplate, featureData);
+
+					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+							+ scenarioCode + "-GIVEN";
+					templateService.createRunScenarioFile(runPlan.getId() + "-pre", templateName, givenTemplate,
+							featureData);
 				}
 				for (String whenTemplate : scenario.getWhenConditions()) {
-					if(whenCount == 0) {
+					if (whenCount == 0) {
 						whenCount++;
 						whenTemplate = "    When " + whenTemplate;
-					}
-					else {
+					} else {
 						whenTemplate = "    And " + whenTemplate;
 					}
-					
-					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-" + scenarioCode + "-WHEN";
-					templateService.createRunScenarioFile(runPlan.getId(), templateName, whenTemplate, featureData);
+
+					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+							+ scenarioCode + "-WHEN";
+					templateService.createRunScenarioFile(runPlan.getId() + "-pre", templateName, whenTemplate,
+							featureData);
 				}
 				for (String thenTemplate : scenario.getThenOutcomes()) {
-					if(thenCount == 0) {
+					if (thenCount == 0) {
 						thenCount++;
 						thenTemplate = "    Then " + thenTemplate;
-					}
-					else {
+					} else {
 						thenTemplate = "    And " + thenTemplate;
 					}
-					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-" + scenarioCode + "-THEN";
-					templateService.createRunScenarioFile(runPlan.getId(), templateName, thenTemplate, featureData);
+					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+							+ scenarioCode + "-THEN";
+					templateService.createRunScenarioFile(runPlan.getId() + "-pre", templateName, thenTemplate,
+							featureData);
 				}
 			}
 		}
 
-		/*
 		for (RunScenario postRunScenario : postRunScenarios) {
 			List<String> scenarioCodes = postRunScenario.getScenarios();
-			for (String scenarioCode : scenarioCodes) {
-				Scenario scenario = scenarioService.findScenarioByCode(scenarioCode);
-				Map<String, Object> featureData = new HashMap<>();
-				featureData = dataService.generateData(scenario.getEntitiesRequired(), postRunScenario.getFeatureCode(), scenarioCode);
-				for (String givenTemplate : scenario.getGivenStatements()) {
-					String templateName = postRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-" + scenarioCode + "-GIVEN";
-					templateService.createRunScenarioFile(runPlan.getId(), templateName, givenTemplate, featureData);
-				}
-				for (String whenTemplate : scenario.getWhenConditions()) {
-					String templateName = postRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-" + scenarioCode + "-WHEN";
-					templateService.createRunScenarioFile(runPlan.getId(), templateName, whenTemplate, featureData);
-				}
-				for (String thenTemplate : scenario.getThenOutcomes()) {
-					String templateName = postRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-" + scenarioCode + "-THEN";
-					templateService.createRunScenarioFile(runPlan.getId(), templateName, thenTemplate, featureData);
+			if (!CollectionUtils.isEmpty(scenarioCodes)) {
+				for (String scenarioCode : scenarioCodes) {
+					Scenario scenario = scenarioService.findScenarioByCode(scenarioCode);
+					Map<String, Object> featureData = new HashMap<>();
+					featureData = dataService.generateData(scenario.getEntitiesRequired(), postRunScenario.getFeatureCode(),
+							scenarioCode);
+					for (String givenTemplate : scenario.getGivenStatements()) {
+						String templateName = postRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+								+ scenarioCode + "-GIVEN";
+						templateService.createRunScenarioFile(runPlan.getId() + "-post", templateName, givenTemplate,
+								featureData);
+					}
+					for (String whenTemplate : scenario.getWhenConditions()) {
+						String templateName = postRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+								+ scenarioCode + "-WHEN";
+						templateService.createRunScenarioFile(runPlan.getId() + "-post", templateName, whenTemplate,
+								featureData);
+					}
+					for (String thenTemplate : scenario.getThenOutcomes()) {
+						String templateName = postRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+								+ scenarioCode + "-THEN";
+						templateService.createRunScenarioFile(runPlan.getId() + "-post", templateName, thenTemplate,
+								featureData);
+					}
 				}
 			}
 		}
-		*/
 	}
-	
+
 	public String uploadFeatureFileToGit(String runPlanId) throws IOException {
 		String fileName = runPlanId + ".txt";
 		File file = new File(fileName);
 		byte[] encoded = Base64.encodeBase64(FileUtils.readFileToByteArray(file), false);
 		String encodedFileContent = new String(encoded, StandardCharsets.UTF_8);
 		System.out.println("Base64 encoded: " + encodedFileContent);
-		
+
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 //		headers.setBearerAuth("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");
 		headers.setBearerAuth("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");
 		HttpEntity<String> entity = new HttpEntity<String>(headers);
-		
+
 		String baseURL = "https://api.github.com/repos/sbandgar-verinite/automation-scripts/contents/src/test/resources/features";
-		ResponseEntity<List<Map<String, Object>>> responseEntity = restTemplate.exchange(baseURL, 
-				HttpMethod.GET, 
-				entity, 
-				new ParameterizedTypeReference<List<Map<String, Object>>>() {}
-		);
+		ResponseEntity<List<Map<String, Object>>> responseEntity = restTemplate.exchange(baseURL, HttpMethod.GET,
+				entity, new ParameterizedTypeReference<List<Map<String, Object>>>() {
+				});
 		List<Map<String, Object>> entities = responseEntity.getBody();
-		
+
 		String sha = (String) entities.get(0).get("sha");
 		String url = (String) entities.get(0).get("url");
 		System.out.println("SHA & URL: " + sha + " " + url);
-		
+
 		baseURL += "/" + runPlanId + ".feature?ref=main";
-		
+
 		JSONObject bodyParam = new JSONObject();
 		JSONObject committer = new JSONObject();
 //		committer.put("name", "Sankhadeep Chakraborty");
@@ -385,22 +398,20 @@ public class SetupService {
 		bodyParam.put("sha", sha);
 		bodyParam.put("branch", "main");
 		bodyParam.put("committer", committer);
-		
+
 		System.out.println("Body param: " + bodyParam.toString());
-		
+
 		HttpHeaders headers1 = new HttpHeaders();
 		headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 //		headers1.setBearerAuth("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");
 		headers1.setBearerAuth("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");
 		HttpEntity<String> entity1 = new HttpEntity<String>(bodyParam.toString(), headers1);
-		
-		ResponseEntity<Object> responseEntity1 = restTemplate.exchange(baseURL, 
-				HttpMethod.PUT, 
-				entity1, 
-				new ParameterizedTypeReference<Object>() {}
-		);
-		
-		if(responseEntity1.getStatusCode().is2xxSuccessful()) {
+
+		ResponseEntity<Object> responseEntity1 = restTemplate.exchange(baseURL, HttpMethod.PUT, entity1,
+				new ParameterizedTypeReference<Object>() {
+				});
+
+		if (responseEntity1.getStatusCode().is2xxSuccessful()) {
 			return "Success";
 		} else {
 			return "Failure";
@@ -408,10 +419,10 @@ public class SetupService {
 	}
 
 	public String buildJenkinsJob(String runPlanId) throws InterruptedException {
-		
+
 		/* Issue Crumb */
-		
-		//String plainCreds = "sankha:1155b93dd2fba10d968714ad841c910c59";
+
+		// String plainCreds = "sankha:1155b93dd2fba10d968714ad841c910c59";
 		String plainCreds = "admin:0d9722b0993b43b594727e3a7c73737b";
 		byte[] plainCredsBytes = plainCreds.getBytes();
 		byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes, false);
@@ -421,71 +432,62 @@ public class SetupService {
 		headers.add("Authorization", "Basic " + base64Creds);
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		HttpEntity<String> entity = new HttpEntity<String>(headers);
-		
-		ResponseEntity<Map<String, String>> responseEntity = restTemplate.exchange("http://localhost:8080/crumbIssuer/api/json", 
-				HttpMethod.GET, 
-				entity, 
-				new ParameterizedTypeReference<Map<String, String>>() {}
-		);
+
+		ResponseEntity<Map<String, String>> responseEntity = restTemplate.exchange(
+				"http://localhost:8080/crumbIssuer/api/json", HttpMethod.GET, entity,
+				new ParameterizedTypeReference<Map<String, String>>() {
+				});
 		Map<String, String> entities = responseEntity.getBody();
 		Map<String, List<String>> respHeader = responseEntity.getHeaders();
-		
+
 		String crumb = entities.get("crumb");
 		String crumbRequestField = entities.get("crumbRequestField");
 		System.out.println("Crumb: " + crumb);
-		
+
 		/* Trigger Build */
-		
+
 		HttpHeaders headerst = new HttpHeaders();
 		headerst.add("Authorization", "Basic " + base64Creds);
 		headerst.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		headerst.add(crumbRequestField, crumb);
 		headerst.set("Cookie", respHeader.get("Set-Cookie").get(0));
 		HttpEntity<String> entityt = new HttpEntity<String>(headerst);
-		
+
 //		ResponseEntity<Map<String,Object>> responseEntityt = restTemplate.exchange("http://localhost:8080/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId, 
 //				HttpMethod.POST, 
 //				entityt, 
 //				new ParameterizedTypeReference<Map<String,Object>>() {}
 //		);
-		
-		ResponseEntity<String> responseEntityt = restTemplate.exchange("http://localhost:8080/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId, 
-				HttpMethod.POST, 
-				entityt, 
-				String.class
-		);
-		
+
+		ResponseEntity<String> responseEntityt = restTemplate.exchange(
+				"http://localhost:8080/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId, HttpMethod.POST,
+				entityt, String.class);
+
 		HttpHeaders respHeaders = responseEntityt.getHeaders();
 		String location = respHeaders.getLocation().toString();
 		System.out.println("Location: " + location + "api/json");
-		
-		
-		/* Get Build number */ 
-		
+
+		/* Get Build number */
+
 		HttpHeaders headersbn = new HttpHeaders();
 		headersbn.add("Authorization", "Basic " + base64Creds);
 		headersbn.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		HttpEntity<String> entitybn = new HttpEntity<String>(headersbn);
-		
-		ResponseEntity<Map<String,Object>> responseEntitybn = restTemplate.exchange(location + "api/json", 
-				HttpMethod.GET, 
-				entitybn, 
-				new ParameterizedTypeReference<Map<String,Object>>() {}
-		);
-		
+
+		ResponseEntity<Map<String, Object>> responseEntitybn = restTemplate.exchange(location + "api/json",
+				HttpMethod.GET, entitybn, new ParameterizedTypeReference<Map<String, Object>>() {
+				});
+
 		System.out.println("Response: " + responseEntitybn.getStatusCode());
-		
+
 		Map<String, Object> entitiesbn = responseEntitybn.getBody();
 		JSONObject jo = new JSONObject(entitiesbn);
-		
+
 		System.out.println("Entity bn: " + jo.toString());
-		
-		
-		
-		
-		//System.out.println("URL to get status: " + url);
+
+		// System.out.println("URL to get status: " + url);
 		/**/
-		
+
 		return "";
 	}
 }

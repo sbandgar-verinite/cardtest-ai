@@ -27,4 +27,8 @@ data:
   gen:
     service:
       baseUrl: http://localhost:8089
+      
+jenkins:
+  baseUrl: http://localhost:8080
+  creds: admin:0d9722b0993b43b594727e3a7c73737b
     

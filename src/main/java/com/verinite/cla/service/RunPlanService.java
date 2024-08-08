@@ -19,5 +19,5 @@ public interface RunPlanService {
 	
 	public List<RunPlan> findAllRunPlanByProjectId(String projectId);
 
-	public String fetchRunPlan(String runPlanId) throws BadRequestException;
+	public String fetchRunPlan(String runPlanId, String scenarioType) throws BadRequestException, Exception;
 }

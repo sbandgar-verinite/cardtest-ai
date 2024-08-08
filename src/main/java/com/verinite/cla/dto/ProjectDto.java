@@ -1,22 +1,24 @@
 package com.verinite.cla.dto;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 
 
 public class ProjectDto {
 
+	private String id;
 	private String name;
 	private String tenantId;
 	private List<String> features;
-	private String startDate;
+	private Date startDate;
 	private List<Integer> validBillingCycles;
 	private String billingCycleSelectionCriteria;
 	private int dueDays;
 	private Map<String, String> attributes;
 
 
-	public ProjectDto(String name, String tenantId, List<String> features, String startDate,
+	public ProjectDto(String name, String tenantId, List<String> features, Date startDate,
 			List<Integer> validBillingCycles, String billingCycleSelectionCriteria, int dueDays
 			, Map<String, String> attributes
 			) {
@@ -50,10 +52,10 @@ public class ProjectDto {
 	public void setFeatures(List<String> features) {
 		this.features = features;
 	}
-	public String getStartDate() {
+	public Date getStartDate() {
 		return startDate;
 	}
-	public void setStartDate(String startDate) {
+	public void setStartDate(Date startDate) {
 		this.startDate = startDate;
 	}
 	public List<Integer> getValidBillingCycles() {
@@ -80,6 +82,11 @@ public class ProjectDto {
 	public void setAttributes(Map<String, String> attributes) {
 		this.attributes = attributes;
 	}
-	
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
 	
 }

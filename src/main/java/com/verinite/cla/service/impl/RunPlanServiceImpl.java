@@ -7,11 +7,11 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.verinite.cla.entity.RunPlan;
+import com.verinite.cla.exception.BadRequestException;
 import com.verinite.cla.repository.RunPlanRepository;
 import com.verinite.cla.service.RunPlanService;
 
@@ -47,17 +47,16 @@ public class RunPlanServiceImpl implements RunPlanService {
 	}
 
 	@Override
-	public String fetchRunPlan(String runPlanId) throws BadRequestException {
+	public String fetchRunPlan(String runPlanId, String scenarioType) throws Exception {
 		Optional<RunPlan> runPlan = runPlanRepository.findById(runPlanId);
 		if (runPlan.isEmpty()) {
 			throw new BadRequestException("Run Plan Not Found");
 		}
 
-		Path path = Paths.get(runPlanId + ".txt");
+		Path path = Paths.get(runPlanId + "-" + scenarioType + ".txt");
 		String content = "";
 		try {
 			content = new String(Files.readAllBytes(path));
-			System.out.println(content);
 		} catch (IOException e) {
 			throw new BadRequestException("File Not Found : " + e.getMessage());
 		}
