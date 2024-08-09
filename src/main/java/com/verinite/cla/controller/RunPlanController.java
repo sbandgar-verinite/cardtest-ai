@@ -3,6 +3,9 @@ package com.verinite.cla.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.service.RunPlanService;
@@ -45,7 +49,9 @@ public class RunPlanController {
 	}
 
 	@GetMapping(value = "/{id}/feature")
-	public String fetchRunPlan(@PathVariable("id") String runPlanId, @RequestParam String scenarioType) throws Exception {
-		return runPlanService.fetchRunPlan(runPlanId, scenarioType);
+	public ResponseEntity<String> fetchRunPlan(@PathVariable("id") String runPlanId, @RequestParam String scenarioType)
+			throws Exception {
+		String response = runPlanService.fetchRunPlan(runPlanId, scenarioType);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }

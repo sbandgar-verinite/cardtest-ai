@@ -1,6 +1,9 @@
 package com.verinite.cla.service.impl;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,13 +57,20 @@ public class RunPlanServiceImpl implements RunPlanService {
 		}
 
 		Path path = Paths.get(runPlanId + "-" + scenarioType + ".txt");
-		String content = "";
-		try {
-			content = new String(Files.readAllBytes(path));
-		} catch (IOException e) {
-			throw new BadRequestException("File Not Found : " + e.getMessage());
+		StringBuilder htmlContent = new StringBuilder();
+		try (BufferedReader reader = new BufferedReader(byteArrayToBufferedReader(Files.readAllBytes(path)))) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				htmlContent.append("<p>").append(line).append("</p>");
+			}
 		}
-		return content;
+
+		return htmlContent.toString();
 	}
 
+	public static InputStreamReader byteArrayToBufferedReader(byte[] byteArray) {
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
+		return new InputStreamReader(byteArrayInputStream);
+//		return new BufferedReader(inputStreamReader);
+	}
 }

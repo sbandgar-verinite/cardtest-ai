@@ -96,7 +96,9 @@ public class SetupService {
 		project.setName(projectDto.getName());
 		project.setTenantId(projectDto.getTenantId());
 		SimpleDateFormat df = new SimpleDateFormat("dd-mm-yyyy");
-		project.setStartDate(new Date(projectDto.getStartDate().getTime()));
+		if (projectDto.getStartDate() != null) {
+			project.setStartDate(new Date(projectDto.getStartDate().getTime()));
+		}
 		project.setValidBillingCycles(projectDto.getValidBillingCycles());
 		project.setFeatures(projectDto.getFeatures());
 		project.setBillingCycleSelectionCriteria(projectDto.getBillingCycleSelectionCriteria());
@@ -257,13 +259,50 @@ public class SetupService {
 		List<RunScenario> postRunScenarios = new ArrayList<>();
 		postRunScenarios = runPlan.getPostRunScripts();
 
-		for (RunScenario preRunScenario : preRunScenarios) {
-			List<String> scenarioCodes = preRunScenario.getScenarios();
-			if (!outFeatureCode.equals(preRunScenario.getFeatureCode()) & scenarioCodes.size() > 0) {
-				outFeatureCode = preRunScenario.getFeatureCode();
-				String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-FEATURE";
-				templateService.createRunScenarioFile(runPlan.getId() + "-pre", templateName,
-						"Feature: " + preRunScenario.getFeatureCode(), null);
+		genScenarioFile(runPlan, preRunScenarios, outFeatureCode, "pre");
+		genScenarioFile(runPlan, postRunScenarios, outFeatureCode, "post");
+
+//		for (RunScenario postRunScenario : postRunScenarios) {
+//			List<String> scenarioCodes = postRunScenario.getScenarios();
+//			if (!CollectionUtils.isEmpty(scenarioCodes)) {
+//				for (String scenarioCode : scenarioCodes) {
+//					Scenario scenario = scenarioService.findScenarioByCode(scenarioCode);
+//					Map<String, Object> featureData = new HashMap<>();
+//					featureData = dataService.generateData(scenario.getEntitiesRequired(), postRunScenario.getFeatureCode(),
+//							scenarioCode);
+//					for (String givenTemplate : scenario.getGivenStatements()) {
+//						String templateName = postRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+//								+ scenarioCode + "-GIVEN";
+//						templateService.createRunScenarioFile(runPlan.getId() + "-post", templateName, givenTemplate,
+//								featureData);
+//					}
+//					for (String whenTemplate : scenario.getWhenConditions()) {
+//						String templateName = postRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+//								+ scenarioCode + "-WHEN";
+//						templateService.createRunScenarioFile(runPlan.getId() + "-post", templateName, whenTemplate,
+//								featureData);
+//					}
+//					for (String thenTemplate : scenario.getThenOutcomes()) {
+//						String templateName = postRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+//								+ scenarioCode + "-THEN";
+//						templateService.createRunScenarioFile(runPlan.getId() + "-post", templateName, thenTemplate,
+//								featureData);
+//					}
+//				}
+//			}
+//		}
+	}
+
+	private void genScenarioFile(RunPlan runPlan, List<RunScenario> runScenarios, String outFeatureCode, String type)
+			throws TemplateNotFoundException, MalformedTemplateNameException, freemarker.core.ParseException,
+			IOException, TemplateException {
+		for (RunScenario runScenario : runScenarios) {
+			List<String> scenarioCodes = runScenario.getScenarios();
+			if (!outFeatureCode.equals(runScenario.getFeatureCode()) & scenarioCodes.size() > 0) {
+				outFeatureCode = runScenario.getFeatureCode();
+				String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-FEATURE";
+				templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName,
+						"Feature: " + runScenario.getFeatureCode(), null);
 			}
 
 			String outScenarioCode = "";
@@ -271,14 +310,14 @@ public class SetupService {
 			for (String scenarioCode : scenarioCodes) {
 				if (!outScenarioCode.equals(scenarioCode)) {
 					outScenarioCode = scenarioCode;
-					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+					String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
 							+ scenarioCode + "-SCENARIO";
-					templateService.createRunScenarioFile(runPlan.getId() + "-pre", templateName,
+					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName,
 							"Scenario: " + scenarioCode, null);
 				}
 				Scenario scenario = scenarioService.findScenarioByCode(scenarioCode);
 				Map<String, Object> featureData = new HashMap<>();
-				featureData = dataService.generateData(scenario.getEntitiesRequired(), preRunScenario.getFeatureCode(),
+				featureData = dataService.generateData(scenario.getEntitiesRequired(), runScenario.getFeatureCode(),
 						scenarioCode);
 
 				int givenCount = 0;
@@ -293,9 +332,9 @@ public class SetupService {
 						givenTemplate = "    And " + givenTemplate;
 					}
 
-					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+					String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
 							+ scenarioCode + "-GIVEN";
-					templateService.createRunScenarioFile(runPlan.getId() + "-pre", templateName, givenTemplate,
+					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName, givenTemplate,
 							featureData);
 				}
 				for (String whenTemplate : scenario.getWhenConditions()) {
@@ -306,9 +345,9 @@ public class SetupService {
 						whenTemplate = "    And " + whenTemplate;
 					}
 
-					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+					String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
 							+ scenarioCode + "-WHEN";
-					templateService.createRunScenarioFile(runPlan.getId() + "-pre", templateName, whenTemplate,
+					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName, whenTemplate,
 							featureData);
 				}
 				for (String thenTemplate : scenario.getThenOutcomes()) {
@@ -318,40 +357,10 @@ public class SetupService {
 					} else {
 						thenTemplate = "    And " + thenTemplate;
 					}
-					String templateName = preRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
+					String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
 							+ scenarioCode + "-THEN";
-					templateService.createRunScenarioFile(runPlan.getId() + "-pre", templateName, thenTemplate,
+					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName, thenTemplate,
 							featureData);
-				}
-			}
-		}
-
-		for (RunScenario postRunScenario : postRunScenarios) {
-			List<String> scenarioCodes = postRunScenario.getScenarios();
-			if (!CollectionUtils.isEmpty(scenarioCodes)) {
-				for (String scenarioCode : scenarioCodes) {
-					Scenario scenario = scenarioService.findScenarioByCode(scenarioCode);
-					Map<String, Object> featureData = new HashMap<>();
-					featureData = dataService.generateData(scenario.getEntitiesRequired(), postRunScenario.getFeatureCode(),
-							scenarioCode);
-					for (String givenTemplate : scenario.getGivenStatements()) {
-						String templateName = postRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
-								+ scenarioCode + "-GIVEN";
-						templateService.createRunScenarioFile(runPlan.getId() + "-post", templateName, givenTemplate,
-								featureData);
-					}
-					for (String whenTemplate : scenario.getWhenConditions()) {
-						String templateName = postRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
-								+ scenarioCode + "-WHEN";
-						templateService.createRunScenarioFile(runPlan.getId() + "-post", templateName, whenTemplate,
-								featureData);
-					}
-					for (String thenTemplate : scenario.getThenOutcomes()) {
-						String templateName = postRunScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
-								+ scenarioCode + "-THEN";
-						templateService.createRunScenarioFile(runPlan.getId() + "-post", templateName, thenTemplate,
-								featureData);
-					}
 				}
 			}
 		}

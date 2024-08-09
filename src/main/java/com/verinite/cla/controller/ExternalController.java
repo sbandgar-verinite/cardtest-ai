@@ -60,7 +60,7 @@ public class ExternalController {
 		if (jsonObj != null) {
 			String status = jsonObj.get("status").asText();
 			String buildNumber = jsonObj.get("buildNumber").asText();
-			String runPlanId = jsonObj.get("	").asText();
+			String runPlanId = jsonObj.get("runPlanId").asText();
 			logger.info("Status : " + status + "Build Number : " + buildNumber + "Run Plan Id :" + runPlanId);
 
 			if (status.equalsIgnoreCase("Success")) {
@@ -73,7 +73,7 @@ public class ExternalController {
 				HttpEntity<String> entity = new HttpEntity<String>(headers);
 
 				ResponseEntity<Resource> result = restTemplate.exchange(
-						jenkinsUrl + "/job/CARDTEST.AI/" + buildNumber
+						jenkinsUrl + "/job/CARDTEST.AI 1/" + buildNumber
 								+ "/artifact/automation-scripts/target/site/serenity/*zip*/serenity.zip",
 						HttpMethod.GET, entity, Resource.class);
 
