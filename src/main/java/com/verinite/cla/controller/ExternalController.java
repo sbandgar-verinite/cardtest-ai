@@ -73,8 +73,8 @@ public class ExternalController {
 				HttpEntity<String> entity = new HttpEntity<String>(headers);
 
 				ResponseEntity<Resource> result = restTemplate.exchange(
-						jenkinsUrl + "/job/CARDTEST.AI 1/" + buildNumber
-								+ "/artifact/automation-scripts/target/site/serenity/*zip*/serenity.zip",
+						jenkinsUrl + "/job/CARDTEST.AI/" + buildNumber
+								+ "/artifact/target/site/serenity/*zip*/serenity.zip",
 						HttpMethod.GET, entity, Resource.class);
 
 				if (result.getStatusCode().is2xxSuccessful()) {
