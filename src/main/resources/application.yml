@@ -22,6 +22,10 @@ spring:
         options:
           keep-alive: 10m
           temperature: 1 
+  web:
+    resources:
+      static-locations:
+        - file:static-files
 
 data:
   gen:
@@ -29,6 +33,5 @@ data:
       baseUrl: http://localhost:8089
       
 jenkins:
-  baseUrl: http://localhost:8080
+  baseUrl: http://192.168.3.195:8080
   creds: admin:0d9722b0993b43b594727e3a7c73737b
-    

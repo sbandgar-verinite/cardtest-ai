@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.verinite.cla.dto.ProjectDto;
@@ -58,13 +59,14 @@ public class SetupController {
 	}
 
 	@RequestMapping(value = "/tenants/{tenantId}/projects/{projectId}/runplans", method = RequestMethod.POST)
-	public String createRunPLan(@PathVariable String tenantId,@PathVariable String projectId) throws ParseException {
+	public String createRunPLan(@PathVariable String tenantId, @PathVariable String projectId) throws ParseException {
 		setupService.createRunPlanForProject(projectId);
 		return "";
 	}
 
 	@RequestMapping(value = "/tenants/{tenantId}/projects/{projectId}/runplans", method = RequestMethod.GET)
-	public List<RunPlan> getAllRunPLan(@PathVariable String tenantId,@PathVariable String projectId) throws ParseException {
+	public List<RunPlan> getAllRunPLan(@PathVariable String tenantId, @PathVariable String projectId)
+			throws ParseException {
 		return runPlanService.findAllRunPlanByProjectId(projectId);
 	}
 
@@ -73,22 +75,22 @@ public class SetupController {
 			@PathVariable String runPlanId) throws TemplateNotFoundException, MalformedTemplateNameException,
 			freemarker.core.ParseException, IOException, TemplateException {
 		setupService.createFeatureFile(tenantId, projectId, runPlanId);
-		return "Success"; 
+		return "Success";
 	}
-	
+
 	@RequestMapping(value = "/tenants/{tenantId}/projects/{projectId}/runplans/{runPlanId}/feature-files/upload-git", method = RequestMethod.GET)
 	public String uploadFeatureFileForCurrentRunToGit(@PathVariable String tenantId, @PathVariable String projectId,
-			@PathVariable String runPlanId) throws TemplateNotFoundException, MalformedTemplateNameException,
-			freemarker.core.ParseException, IOException, TemplateException {
-		setupService.uploadFeatureFileToGit(runPlanId);
+			@PathVariable String runPlanId, @RequestParam String type) throws TemplateNotFoundException,
+			MalformedTemplateNameException, freemarker.core.ParseException, IOException, TemplateException {
+		setupService.uploadFeatureFileToGit(runPlanId, type);
 		return "Success";
 	}
-	
+
 	@RequestMapping(value = "/tenants/{tenantId}/projects/{projectId}/runplans/{runPlanId}/feature-files/build", method = RequestMethod.GET)
 	public String triggerRunForCurrentFeatureFile(@PathVariable String tenantId, @PathVariable String projectId,
-			@PathVariable String runPlanId) throws InterruptedException {
-		setupService.buildJenkinsJob(runPlanId);
+			@PathVariable String runPlanId, @RequestParam String type) throws InterruptedException {
+		setupService.buildJenkinsJob(runPlanId, type);
 		return "Success";
 	}
-	
+
 }

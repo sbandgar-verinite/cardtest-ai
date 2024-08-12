@@ -2,7 +2,6 @@ package com.verinite.cla.service.impl;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,5 +71,18 @@ public class RunPlanServiceImpl implements RunPlanService {
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
 		return new InputStreamReader(byteArrayInputStream);
 //		return new BufferedReader(inputStreamReader);
+	}
+
+	@Override
+	public void updateStatus(String runPlanId, String status, String url) {
+		Optional<RunPlan> runPlan = runPlanRepository.findById(runPlanId);
+		if (runPlan.isEmpty()) {
+			throw new BadRequestException("Run Plan Not Found : " + runPlanId);
+		}
+		runPlan.get().setStatus(status);
+		if (url != null) {
+			runPlan.get().setReportUrl(url);
+		}
+		runPlanRepository.save(runPlan.get());
 	}
 }

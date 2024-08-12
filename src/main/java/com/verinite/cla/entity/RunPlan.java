@@ -15,12 +15,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="run-plan")
+@Table(name = "run-plan")
 public class RunPlan {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.UUID)
-	@Column(name="id", columnDefinition="VARCHAR(255)")
+	@GeneratedValue(strategy = GenerationType.UUID)
+	@Column(name = "id", columnDefinition = "VARCHAR(255)")
 	private String id;
 	private int sequenceNumber;
 	private String projectId;
@@ -34,7 +34,8 @@ public class RunPlan {
 	@Column(columnDefinition = "VARBINARY(5000)")
 	private List<RunScenario> postRunScripts;
 	private String status;
-
+	private String completionStatus;
+	private String reportUrl;
 
 	public RunPlan(String id, int sequenceNumber, String projectId, String description, Date runDate,
 			Integer billingCycleConsidered, List<RunScenario> preRunScripts, List<RunScenario> postRunScripts,
@@ -50,48 +51,63 @@ public class RunPlan {
 		this.postRunScripts = postRunScripts;
 		this.status = status;
 	}
+
 	public RunPlan() {
 		super();
 	}
+
 	public String getId() {
 		return id;
 	}
+
 	public void setId(String id) {
 		this.id = id;
 	}
+
 	public int getSequenceNumber() {
 		return sequenceNumber;
 	}
+
 	public void setSequenceNumber(int sequenceNumber) {
 		this.sequenceNumber = sequenceNumber;
 	}
+
 	public String getDescription() {
 		return description;
 	}
+
 	public void setDescription(String description) {
 		this.description = description;
 	}
+
 	public List<RunScenario> getPreRunScripts() {
 		return preRunScripts;
 	}
+
 	public void setPreRunScripts(List<RunScenario> preRunScripts) {
 		this.preRunScripts = preRunScripts;
 	}
+
 	public List<RunScenario> getPostRunScripts() {
 		return postRunScripts;
 	}
+
 	public void setPostRunScripts(List<RunScenario> postRunScripts) {
 		this.postRunScripts = postRunScripts;
 	}
+
 	public Date getRunDate() {
 		return runDate;
 	}
+
 	public void setRunDate(Date runDate) {
 		this.runDate = runDate;
 	}
+
 	public String getProjectId() {
 		return projectId;
 	}
+
 	public void setProjectId(String projectId) {
 		this.projectId = projectId;
 	}
@@ -103,11 +119,28 @@ public class RunPlan {
 	public void setBillingCycleConsidered(Integer billingCycleConsidered) {
 		this.billingCycleConsidered = billingCycleConsidered;
 	}
+
 	public String getStatus() {
 		return status;
 	}
+
 	public void setStatus(String status) {
 		this.status = status;
 	}
-	
+
+	public String getCompletionStatus() {
+		return completionStatus;
+	}
+
+	public void setCompletionStatus(String completionStatus) {
+		this.completionStatus = completionStatus;
+	}
+
+	public String getReportUrl() {
+		return reportUrl;
+	}
+
+	public void setReportUrl(String reportUrl) {
+		this.reportUrl = reportUrl;
+	}
 }

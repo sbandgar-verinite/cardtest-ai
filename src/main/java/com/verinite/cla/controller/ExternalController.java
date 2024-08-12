@@ -1,6 +1,8 @@
 package com.verinite.cla.controller;
 
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -26,12 +28,18 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.verinite.cla.dto.GherkinFormat;
 import com.verinite.cla.service.LlamaAiService;
+import com.verinite.cla.service.RunPlanService;
+import com.verinite.cla.util.RunPlanStatus;
+import com.verinite.cla.util.ZipUtil;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 public class ExternalController {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
+
+	@Autowired
+	private RunPlanService runPlanService;
 
 	@Autowired
 	private LlamaAiService llamaAiService;
@@ -56,12 +64,14 @@ public class ExternalController {
 	}
 
 	@PostMapping("notify/build")
-	public void notify(@RequestBody JsonNode jsonObj) {
+	public void notify(@RequestBody JsonNode jsonObj) throws IOException {
 		if (jsonObj != null) {
 			String status = jsonObj.get("status").asText();
 			String buildNumber = jsonObj.get("buildNumber").asText();
+			String fileName = jsonObj.get("fileName").asText();
 			String runPlanId = jsonObj.get("runPlanId").asText();
-			logger.info("Status : " + status + "Build Number : " + buildNumber + "Run Plan Id :" + runPlanId);
+			logger.info("Status : " + status + "Build Number : " + buildNumber + "fileName :" + fileName,
+					"runPlanId :" + runPlanId);
 
 			if (status.equalsIgnoreCase("Success")) {
 				byte[] plainCredsBytes = creds.getBytes();
@@ -80,8 +90,7 @@ public class ExternalController {
 				if (result.getStatusCode().is2xxSuccessful()) {
 					logger.info(result.toString());
 					try (InputStream inputStream = result.getBody().getInputStream();
-							OutputStream outputStream = new FileOutputStream("abc.zip")) {
-
+							OutputStream outputStream = new FileOutputStream("static-files/" + fileName + ".zip")) {
 						byte[] buffer = new byte[1024];
 						int bytesRead;
 						while ((bytesRead = inputStream.read(buffer)) != -1) {
@@ -90,9 +99,18 @@ public class ExternalController {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
+					File destDir = new File("static-files/" + fileName);
+					ZipUtil.unzip(getFile("static-files/" + fileName + ".zip"), destDir);
 				}
-
+				runPlanService.updateStatus(runPlanId, RunPlanStatus.PRE_RUN_SUCCESS.name(),
+						"http://localhost:8090/api/v1/cardtest/" + fileName + "/serenity/index.html");
+			} else {
+				runPlanService.updateStatus(runPlanId, RunPlanStatus.PRE_RUN_FAILURE.name(), null);
 			}
 		}
+	}
+
+	public File getFile(String filePath) {
+		return new File(filePath);
 	}
 }

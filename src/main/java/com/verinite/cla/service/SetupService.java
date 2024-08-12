@@ -14,10 +14,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -25,7 +28,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.collect.LinkedHashMultimap;
@@ -37,8 +39,10 @@ import com.verinite.cla.entity.Project;
 import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.entity.Scenario;
 import com.verinite.cla.entity.Tenant;
+import com.verinite.cla.exception.BadRequestException;
 import com.verinite.cla.model.RunConfig;
 import com.verinite.cla.model.RunScenario;
+import com.verinite.cla.util.RunPlanStatus;
 
 import freemarker.template.MalformedTemplateNameException;
 import freemarker.template.TemplateException;
@@ -73,6 +77,9 @@ public class SetupService {
 
 	@Autowired
 	private RestTemplate restTemplate;
+
+	@Value("${jenkins.baseUrl}")
+	private String jenkinsUrl;
 
 	public Tenant addNewTenant(TenantDto tenantDto) {
 		Tenant tenant = new Tenant();
@@ -241,7 +248,7 @@ public class SetupService {
 			runPlan.setPreRunScripts(prerunScenarios);
 			runPlan.setPostRunScripts(postrunScenarios);
 
-			runPlan.setStatus("CREATED");
+			runPlan.setStatus("GENERATED");
 			runPlanService.addRunPlan(runPlan);
 		}
 	}
@@ -366,8 +373,13 @@ public class SetupService {
 		}
 	}
 
-	public String uploadFeatureFileToGit(String runPlanId) throws IOException {
-		String fileName = runPlanId + ".txt";
+	public String uploadFeatureFileToGit(String runPlanId, String type) throws IOException {
+		RunPlan runPlan = runPlanService.findRunPlanById(runPlanId);
+		if (Objects.isNull(runPlan)) {
+			throw new BadRequestException("Run Plan Not Found");
+		}
+
+		String fileName = runPlanId + "-" + type + ".txt";
 		File file = new File(fileName);
 		byte[] encoded = Base64.encodeBase64(FileUtils.readFileToByteArray(file), false);
 		String encodedFileContent = new String(encoded, StandardCharsets.UTF_8);
@@ -389,7 +401,7 @@ public class SetupService {
 		String url = (String) entities.get(0).get("url");
 		System.out.println("SHA & URL: " + sha + " " + url);
 
-		baseURL += "/" + runPlanId + ".feature?ref=main";
+		baseURL += "/" + runPlanId + "-" + type + ".feature?ref=main";
 
 		JSONObject bodyParam = new JSONObject();
 		JSONObject committer = new JSONObject();
@@ -421,14 +433,19 @@ public class SetupService {
 				});
 
 		if (responseEntity1.getStatusCode().is2xxSuccessful()) {
+			runPlan.setStatus(RunPlanStatus.UPLOADED.name());
 			return "Success";
 		} else {
+			runPlan.setStatus(RunPlanStatus.UPLOAD_FAILED.name());
 			return "Failure";
 		}
 	}
 
-	public String buildJenkinsJob(String runPlanId) throws InterruptedException {
-
+	public String buildJenkinsJob(String runPlanId, String type) throws InterruptedException {
+		RunPlan runPlan = runPlanService.findRunPlanById(runPlanId);
+		if (Objects.isNull(runPlan)) {
+			throw new BadRequestException("Run Plan Not Found");
+		}
 		/* Issue Crumb */
 
 		// String plainCreds = "sankha:1155b93dd2fba10d968714ad841c910c59";
@@ -442,9 +459,8 @@ public class SetupService {
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		HttpEntity<String> entity = new HttpEntity<String>(headers);
 
-		ResponseEntity<Map<String, String>> responseEntity = restTemplate.exchange(
-				"http://localhost:8080/crumbIssuer/api/json", HttpMethod.GET, entity,
-				new ParameterizedTypeReference<Map<String, String>>() {
+		ResponseEntity<Map<String, String>> responseEntity = restTemplate.exchange(jenkinsUrl + "/crumbIssuer/api/json",
+				HttpMethod.GET, entity, new ParameterizedTypeReference<Map<String, String>>() {
 				});
 		Map<String, String> entities = responseEntity.getBody();
 		Map<String, List<String>> respHeader = responseEntity.getHeaders();
@@ -468,9 +484,9 @@ public class SetupService {
 //				new ParameterizedTypeReference<Map<String,Object>>() {}
 //		);
 
-		ResponseEntity<String> responseEntityt = restTemplate.exchange(
-				"http://localhost:8080/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId, HttpMethod.POST,
-				entityt, String.class);
+		ResponseEntity<String> responseEntityt = restTemplate
+				.exchange(jenkinsUrl + "/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId
+						+ "&SCENARIO_TYPE=" + type, HttpMethod.POST, entityt, String.class);
 
 		HttpHeaders respHeaders = responseEntityt.getHeaders();
 		String location = respHeaders.getLocation().toString();
@@ -493,7 +509,7 @@ public class SetupService {
 		JSONObject jo = new JSONObject(entitiesbn);
 
 		System.out.println("Entity bn: " + jo.toString());
-
+		runPlan.setStatus(RunPlanStatus.INPROGRESS.name());
 		// System.out.println("URL to get status: " + url);
 		/**/
 

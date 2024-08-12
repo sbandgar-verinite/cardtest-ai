@@ -1,0 +1,7 @@
+package com.verinite.cla.util;
+
+public enum RunPlanStatus {
+
+	GENERATED, UPLOADED, UPLOAD_FAILED, INPROGRESS, BUILD_FAILED, COMPLETED, PRE_RUN_SUCCESS, PRE_RUN_FAILURE;
+
+}
