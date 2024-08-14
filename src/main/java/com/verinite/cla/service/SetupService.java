@@ -3,18 +3,17 @@ package com.verinite.cla.service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.sql.Date;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -30,19 +29,26 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.verinite.cla.dto.ProjectDto;
-import com.verinite.cla.dto.TenantDto;
 import com.verinite.cla.entity.Feature;
 import com.verinite.cla.entity.Project;
 import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.entity.Scenario;
-import com.verinite.cla.entity.Tenant;
-import com.verinite.cla.exception.BadRequestException;
 import com.verinite.cla.model.RunConfig;
 import com.verinite.cla.model.RunScenario;
 import com.verinite.cla.util.RunPlanStatus;
+import com.verinite.cla.util.Status;
+import com.verinite.commons.controlleradvice.BadRequestException;
+import com.verinite.commons.dto.StatusResponse;
+import com.verinite.commons.model.Config;
+import com.verinite.commons.repo.ConfigurationRepository;
+import com.verinite.commons.service.ExtService;
 
 import freemarker.template.MalformedTemplateNameException;
 import freemarker.template.TemplateException;
@@ -51,8 +57,8 @@ import freemarker.template.TemplateNotFoundException;
 @Service
 public class SetupService {
 
-	@Autowired
-	private TenantService tenantService;
+//	@Autowired
+//	private TenantService tenantService;
 
 	@Autowired
 	private ProjectService projectService;
@@ -81,22 +87,31 @@ public class SetupService {
 	@Value("${jenkins.baseUrl}")
 	private String jenkinsUrl;
 
-	public Tenant addNewTenant(TenantDto tenantDto) {
-		Tenant tenant = new Tenant();
-		tenant.setName(tenantDto.getName());
-		tenant.setProduct(tenantDto.getProduct());
-		tenant.setFeatures(tenantDto.getFeatures());
-		tenantService.addTenant(tenant);
-		return tenant;
-	}
+	@Autowired
+	private ConfigurationRepository configRepo;
 
-	public Tenant getTenantById(String tenantId) {
-		return tenantService.findTenantById(tenantId);
-	}
+	@Autowired
+	private ObjectMapper mapper;
 
-	public List<Tenant> getAllTenants() {
-		return tenantService.findAllTenant();
-	}
+	@Autowired
+	private ExtService extService;
+
+//	public Tenant addNewTenant(TenantDto tenantDto) {
+//		Tenant tenant = new Tenant();
+//		tenant.setName(tenantDto.getName());
+//		tenant.setProduct(tenantDto.getProduct());
+//		tenant.setFeatures(tenantDto.getFeatures());
+//		tenantService.addTenant(tenant);
+//		return tenant;
+//	}
+//
+//	public Tenant getTenantById(String tenantId) {
+//		return tenantService.findTenantById(tenantId);
+//	}
+//
+//	public List<Tenant> getAllTenants() {
+//		return tenantService.findAllTenant();
+//	}
 
 	public void addNewProject(ProjectDto projectDto) throws ParseException {
 		Project project = new Project();
@@ -106,10 +121,10 @@ public class SetupService {
 		if (projectDto.getStartDate() != null) {
 			project.setStartDate(new Date(projectDto.getStartDate().getTime()));
 		}
-		project.setValidBillingCycles(projectDto.getValidBillingCycles());
+//		project.setValidBillingCycles(projectDto.getValidBillingCycles());
 		project.setFeatures(projectDto.getFeatures());
-		project.setBillingCycleSelectionCriteria(projectDto.getBillingCycleSelectionCriteria());
-		project.setDueDays(projectDto.getDueDays());
+//		project.setBillingCycleSelectionCriteria(projectDto.getBillingCycleSelectionCriteria());
+//		project.setDueDays(projectDto.getDueDays());
 		project.setAttributes(projectDto.getAttributes());
 
 		project = projectService.addProject(project);
@@ -119,51 +134,52 @@ public class SetupService {
 	public void createRunPlanForProject(String projectId) throws ParseException {
 		Project project = new Project();
 		project = projectService.findProjectById(projectId);
-
+		Optional<Config> runConf = configRepo.findByKeyName("RUN_CONFIG");
 		Feature feature = new Feature();
 
 		Multimap<Date, Map<String, RunScenario>> listOfRunScenarios = LinkedHashMultimap.create();
 
-		Date runStartDate = project.getStartDate();
-		Calendar runCalendar = Calendar.getInstance();
-		runCalendar.setTime(runStartDate);
-		DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-		String nextStatementDateSt = df.format(runStartDate);
+//		Date runStartDate = project.getStartDate();
+//		Calendar runCalendar = Calendar.getInstance();
+//		runCalendar.setTime(runStartDate);
+//		DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+//		String nextStatementDateSt = df.format(runStartDate);
 
-		int daysFromRunStart = 0;
-		int selectedBC = 0;
-		Date nextStatementDate = null;
-		Date nextDueDate = null;
+//		int daysFromRunStart = 0;
+//		int selectedBC = 0;
+//		Date nextStatementDate = null;
+//		Date nextDueDate = null;
 
-		for (Integer billingCycle : project.getValidBillingCycles()) {
-			String formattedBC = String.format("%02d", billingCycle);
-			nextStatementDateSt = formattedBC + nextStatementDateSt.substring(2);
-			try {
-				Date dateForBC = new Date(df.parse(nextStatementDateSt).getTime());
-				if (dateForBC.before(runStartDate)) {
-					Calendar bcCalendar = Calendar.getInstance();
-					bcCalendar.setTime(dateForBC);
-					bcCalendar.add(Calendar.MONTH, 1);
-				}
+//		for (Integer billingCycle : project.getValidBillingCycles()) {
+//			String formattedBC = String.format("%02d", billingCycle);
+//			nextStatementDateSt = formattedBC + nextStatementDateSt.substring(2);
+//			try {
+//				Date dateForBC = new Date(df.parse(nextStatementDateSt).getTime());
+//				if (dateForBC.before(runStartDate)) {
+//					Calendar bcCalendar = Calendar.getInstance();
+//					bcCalendar.setTime(dateForBC);
+//					bcCalendar.add(Calendar.MONTH, 1);
+//				}
+//
+//				int daysTillStatement = dateService.numberOfDays(runStartDate, dateForBC);
+//				if (project.getBillingCycleSelectionCriteria().equals("FARTHEST")
+//						& daysFromRunStart < daysTillStatement) {
+//					daysFromRunStart = daysTillStatement;
+//					nextStatementDate = dateForBC;
+//					selectedBC = billingCycle;
+//
+//					Calendar dueDateCalendar = Calendar.getInstance();
+//					dueDateCalendar.setTime(nextStatementDate);
+//					dueDateCalendar.add(Calendar.DATE, project.getDueDays());
+//					nextDueDate = new Date(dueDateCalendar.getTime().getTime());
+//				}
+//
+//			} catch (ParseException e) {
+//				e.printStackTrace();
+//			}
+//		}
 
-				int daysTillStatement = dateService.numberOfDays(runStartDate, dateForBC);
-				if (project.getBillingCycleSelectionCriteria().equals("FARTHEST")
-						& daysFromRunStart < daysTillStatement) {
-					daysFromRunStart = daysTillStatement;
-					nextStatementDate = dateForBC;
-					selectedBC = billingCycle;
-
-					Calendar dueDateCalendar = Calendar.getInstance();
-					dueDateCalendar.setTime(nextStatementDate);
-					dueDateCalendar.add(Calendar.DATE, project.getDueDays());
-					nextDueDate = new Date(dueDateCalendar.getTime().getTime());
-				}
-
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
-		}
-
+		Date startDate = project.getStartDate();
 		for (String featureCode : project.getFeatures()) {
 
 			feature = featureService.findFeatureByCode(featureCode);
@@ -178,50 +194,52 @@ public class SetupService {
 				postRunScenario.setFeatureCode(feature.getCode());
 				Map<String, RunScenario> featureRunScenario = new HashMap<>();
 
-				if (runConfig.getRunType().equals("Normal")) {
-					runCalendar.add(Calendar.DATE, (runConfig.getRunNumber().intValue() - 1));
-				}
+//				if (runConfig.getRunType().equals("Normal")) {
+				JsonNode node = calculateRunTime(runConfig.getRunType(), runConf.get());
+				Date date = calculateDate(startDate, node);
+//					runCalendar.add(Calendar.DATE, (runConfig.getRunNumber().intValue() - 1));
+//				}
 
-				if (runConfig.getRunType().equals("StatementDate")) {
-					if (nextStatementDate.after(runCalendar.getTime())) {
-						runCalendar.setTime(nextStatementDate);
-					} else {
-						runCalendar.setTime(nextStatementDate);
-						runCalendar.add(Calendar.MONTH, 1);
-						nextStatementDate = new Date(runCalendar.getTime().getTime());
-					}
-				}
+//				if (runConfig.getRunType().equals("Statement")) {
+//					if (nextStatementDate.after(runCalendar.getTime())) {
+//						runCalendar.setTime(nextStatementDate);
+//					} else {
+//						runCalendar.setTime(nextStatementDate);
+//						runCalendar.add(Calendar.MONTH, 1);
+//						nextStatementDate = new Date(runCalendar.getTime().getTime());
+//					}
+//				}
 
-				if (runConfig.getRunType().equals("DueDate")) {
-					if (nextDueDate.after(runCalendar.getTime())) {
-						runCalendar.setTime(nextDueDate);
-					} else {
-						runCalendar.setTime(nextStatementDate);
-						runCalendar.add(Calendar.DATE, project.getDueDays());
-						nextDueDate = new Date(runCalendar.getTime().getTime());
-					}
-				}
+//				if (runConfig.getRunType().equals("Due")) {
+//					if (nextDueDate.after(runCalendar.getTime())) {
+//						runCalendar.setTime(nextDueDate);
+//					} else {
+//						runCalendar.setTime(nextStatementDate);
+////						runCalendar.add(Calendar.DATE, project.getDueDays());
+//						nextDueDate = new Date(runCalendar.getTime().getTime());
+//					}
+//				}
 
 				preRunScenario.setScenarios(runConfig.getPreRunScripts());
 				featureRunScenario.put("PrerunScenarios", preRunScenario);
 				postRunScenario.setScenarios(runConfig.getPostRunScripts());
 				featureRunScenario.put("PostrunScenarios", postRunScenario);
-				Date date = new Date(runCalendar.getTime().getTime());
-
-				listOfRunScenarios.put(date, featureRunScenario);
+//				Date date = new Date(runCalendar.getTime().getTime());
+				startDate = new Date(date.getTime());
+				listOfRunScenarios.put(startDate, featureRunScenario);
 			}
 
-			runStartDate = project.getStartDate();
-			runCalendar.setTime(runStartDate);
-			String formattedBC = String.format("%02d", selectedBC);
-			nextStatementDateSt = formattedBC + nextStatementDateSt.substring(2);
-			nextStatementDate = new Date(df.parse(nextStatementDateSt).getTime());
+//			runStartDate = project.getStartDate();
+//			runCalendar.setTime(runStartDate);
+//			String formattedBC = String.format("%02d", selectedBC);
+//			nextStatementDateSt = formattedBC + nextStatementDateSt.substring(2);
+//			nextStatementDate = new Date(df.parse(nextStatementDateSt).getTime());
 
-			if (nextStatementDate.before(runStartDate)) {
-				Calendar nextStmtCalendar = Calendar.getInstance();
-				nextStmtCalendar.setTime(nextStatementDate);
-				nextStmtCalendar.add(Calendar.MONTH, 1);
-			}
+//			if (nextStatementDate.before(runStartDate)) {
+//				Calendar nextStmtCalendar = Calendar.getInstance();
+//				nextStmtCalendar.setTime(nextStatementDate);
+//				nextStmtCalendar.add(Calendar.MONTH, 1);
+//			}
 
 		}
 		int runCounter = 0;
@@ -233,7 +251,7 @@ public class SetupService {
 			runCounter++;
 			runPlan.setSequenceNumber(runCounter);
 			runPlan.setDescription("Run Number: #" + runCounter);
-			runPlan.setBillingCycleConsidered(selectedBC);
+//			runPlan.setBillingCycleConsidered(selectedBC);
 
 			Collection<Map<String, RunScenario>> runScenarios = listOfRunScenarios.get(runDate);
 			List<RunScenario> prerunScenarios = new ArrayList<>();
@@ -248,9 +266,53 @@ public class SetupService {
 			runPlan.setPreRunScripts(prerunScenarios);
 			runPlan.setPostRunScripts(postrunScenarios);
 
-			runPlan.setStatus("GENERATED");
+			runPlan.setStatus(Status.CREATED.getStatus());
 			runPlanService.addRunPlan(runPlan);
 		}
+	}
+
+	private Date calculateDate(Date startDate, JsonNode node) {
+		String jsFunc = node.get("js_func").asText();
+		String functionName = node.get("function_name").asText();
+
+		StringBuilder str = new StringBuilder(jsFunc);
+		str.append(functionName);
+		str.append("(").append(startDate.toString()).append(");");
+		String calDate = extService.executeJs(str.toString());
+		return new Date(calDate);
+
+//		try (Context context = Context.create()) {
+//			context.eval("js", jsFunc);
+//			org.graalvm.polyglot.Value greetFunction = context.getBindings("js").getMember(functionName);
+//	        String result = greetFunction.execute(startDate).asString();
+//	        return Date.valueOf(result);
+//		}
+
+//		Calendar calendar = Calendar.getInstance();
+//		calendar.setTime(startDate);
+//		calendar.add(Calendar.DAY_OF_MONTH, node.get("no_of_days_req").asInt());
+//		return calendar.getTime();
+	}
+
+	private JsonNode calculateRunTime(String runType, Config config) {
+		JsonNode node = null;
+		if (config.getData() != null) {
+			try {
+				node = mapper.readTree(config.getData());
+				JsonNode array = node.get("runConfigs");
+				if (array.isArray()) {
+					ArrayNode arrayNode = (ArrayNode) array;
+					for (JsonNode jNode : arrayNode) {
+						if (jNode.get("run_type").asText().equalsIgnoreCase(runType)) {
+							return jNode;
+						}
+					}
+				}
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 
 	public void createFeatureFile(String tenantId, String projectId, String runPlanId) throws TemplateNotFoundException,
@@ -371,9 +433,14 @@ public class SetupService {
 				}
 			}
 		}
+		if (type.equalsIgnoreCase("pre")) {
+
+		} else if (type.equalsIgnoreCase("pre")) {
+
+		}
 	}
 
-	public String uploadFeatureFileToGit(String runPlanId, String type) throws IOException {
+	public StatusResponse uploadFeatureFileToGit(String runPlanId, String type) throws IOException {
 		RunPlan runPlan = runPlanService.findRunPlanById(runPlanId);
 		if (Objects.isNull(runPlan)) {
 			throw new BadRequestException("Run Plan Not Found");
@@ -433,15 +500,13 @@ public class SetupService {
 				});
 
 		if (responseEntity1.getStatusCode().is2xxSuccessful()) {
-			runPlan.setStatus(RunPlanStatus.UPLOADED.name());
-			return "Success";
+			return new StatusResponse("Upload Successful");
 		} else {
-			runPlan.setStatus(RunPlanStatus.UPLOAD_FAILED.name());
-			return "Failure";
+			return new StatusResponse("Upload Failed");
 		}
 	}
 
-	public String buildJenkinsJob(String runPlanId, String type) throws InterruptedException {
+	public StatusResponse buildJenkinsJob(String runPlanId, String type) throws InterruptedException {
 		RunPlan runPlan = runPlanService.findRunPlanById(runPlanId);
 		if (Objects.isNull(runPlan)) {
 			throw new BadRequestException("Run Plan Not Found");
@@ -484,9 +549,9 @@ public class SetupService {
 //				new ParameterizedTypeReference<Map<String,Object>>() {}
 //		);
 
-		ResponseEntity<String> responseEntityt = restTemplate
-				.exchange(jenkinsUrl + "/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId
-						+ "&SCENARIO_TYPE=" + type, HttpMethod.POST, entityt, String.class);
+		ResponseEntity<String> responseEntityt = restTemplate.exchange(
+				jenkinsUrl + "/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId + "&SCENARIO_TYPE=" + type,
+				HttpMethod.POST, entityt, String.class);
 
 		HttpHeaders respHeaders = responseEntityt.getHeaders();
 		String location = respHeaders.getLocation().toString();
@@ -509,10 +574,12 @@ public class SetupService {
 		JSONObject jo = new JSONObject(entitiesbn);
 
 		System.out.println("Entity bn: " + jo.toString());
-		runPlan.setStatus(RunPlanStatus.INPROGRESS.name());
-		// System.out.println("URL to get status: " + url);
-		/**/
-
-		return "";
+		runPlan.setStatus(Status.INPROGRESS.getStatus());
+		if (type.equalsIgnoreCase("pre")) {
+			runPlan.setPreRunStatus(RunPlanStatus.BUILD_TRIGGERED.getStatus());
+		} else if (type.equalsIgnoreCase("post")) {
+			runPlan.setPostRunStatus(RunPlanStatus.BUILD_TRIGGERED.getStatus());
+		}
+		return new StatusResponse(Status.INPROGRESS.name());
 	}
 }

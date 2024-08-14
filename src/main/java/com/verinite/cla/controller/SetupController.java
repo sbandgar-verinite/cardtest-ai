@@ -18,6 +18,7 @@ import com.verinite.cla.dto.TenantDto;
 import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.service.RunPlanService;
 import com.verinite.cla.service.SetupService;
+import com.verinite.commons.dto.StatusResponse;
 
 import freemarker.template.MalformedTemplateNameException;
 import freemarker.template.TemplateException;
@@ -34,23 +35,23 @@ public class SetupController {
 	@Autowired
 	private RunPlanService runPlanService;
 
-	@RequestMapping(value = "/tenants", method = RequestMethod.POST)
-	public String setupNewTenant(TenantDto tenant) {
-		setupService.addNewTenant(tenant);
-		return "";
-	}
-
-	@RequestMapping(value = "/tenants", method = RequestMethod.GET)
-	public String getAllTenant() {
-		setupService.getAllTenants();
-		return "";
-	}
-
-	@RequestMapping(value = "/tenants/{tenantId}", method = RequestMethod.GET)
-	public String getTenantById(@PathVariable String tenantId) {
-		setupService.getTenantById(tenantId);
-		return "";
-	}
+//	@RequestMapping(value = "/tenants", method = RequestMethod.POST)
+//	public String setupNewTenant(TenantDto tenant) {
+//		setupService.addNewTenant(tenant);
+//		return "";
+//	}
+//
+//	@RequestMapping(value = "/tenants", method = RequestMethod.GET)
+//	public String getAllTenant() {
+//		setupService.getAllTenants();
+//		return "";
+//	}
+//
+//	@RequestMapping(value = "/tenants/{tenantId}", method = RequestMethod.GET)
+//	public String getTenantById(@PathVariable String tenantId) {
+//		setupService.getTenantById(tenantId);
+//		return "";
+//	}
 
 	@RequestMapping(value = "/tenants/{tenantId}/projects", method = RequestMethod.POST)
 	public String addNewProject(@PathVariable String tenantId, @RequestBody ProjectDto project) throws ParseException {
@@ -79,18 +80,16 @@ public class SetupController {
 	}
 
 	@RequestMapping(value = "/tenants/{tenantId}/projects/{projectId}/runplans/{runPlanId}/feature-files/upload-git", method = RequestMethod.GET)
-	public String uploadFeatureFileForCurrentRunToGit(@PathVariable String tenantId, @PathVariable String projectId,
+	public StatusResponse uploadFeatureFileForCurrentRunToGit(@PathVariable String tenantId, @PathVariable String projectId,
 			@PathVariable String runPlanId, @RequestParam String type) throws TemplateNotFoundException,
 			MalformedTemplateNameException, freemarker.core.ParseException, IOException, TemplateException {
-		setupService.uploadFeatureFileToGit(runPlanId, type);
-		return "Success";
+		return setupService.uploadFeatureFileToGit(runPlanId, type);
 	}
 
 	@RequestMapping(value = "/tenants/{tenantId}/projects/{projectId}/runplans/{runPlanId}/feature-files/build", method = RequestMethod.GET)
-	public String triggerRunForCurrentFeatureFile(@PathVariable String tenantId, @PathVariable String projectId,
+	public StatusResponse triggerRunForCurrentFeatureFile(@PathVariable String tenantId, @PathVariable String projectId,
 			@PathVariable String runPlanId, @RequestParam String type) throws InterruptedException {
-		setupService.buildJenkinsJob(runPlanId, type);
-		return "Success";
+		return setupService.buildJenkinsJob(runPlanId, type);
 	}
 
 }

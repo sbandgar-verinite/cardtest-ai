@@ -1,6 +1,6 @@
 package com.verinite.cla.entity;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -34,8 +34,10 @@ public class RunPlan {
 	@Column(columnDefinition = "VARBINARY(5000)")
 	private List<RunScenario> postRunScripts;
 	private String status;
-	private String completionStatus;
-	private String reportUrl;
+	private String preRunStatus;
+	private String postRunStatus;
+	private String preReportUrl;
+	private String postReportUrl;
 
 	public RunPlan(String id, int sequenceNumber, String projectId, String description, Date runDate,
 			Integer billingCycleConsidered, List<RunScenario> preRunScripts, List<RunScenario> postRunScripts,
@@ -128,19 +130,35 @@ public class RunPlan {
 		this.status = status;
 	}
 
-	public String getCompletionStatus() {
-		return completionStatus;
+	public String getPreRunStatus() {
+		return preRunStatus;
 	}
 
-	public void setCompletionStatus(String completionStatus) {
-		this.completionStatus = completionStatus;
+	public void setPreRunStatus(String preRunStatus) {
+		this.preRunStatus = preRunStatus;
 	}
 
-	public String getReportUrl() {
-		return reportUrl;
+	public String getPostRunStatus() {
+		return postRunStatus;
 	}
 
-	public void setReportUrl(String reportUrl) {
-		this.reportUrl = reportUrl;
+	public void setPostRunStatus(String postRunStatus) {
+		this.postRunStatus = postRunStatus;
+	}
+
+	public String getPreReportUrl() {
+		return preReportUrl;
+	}
+
+	public void setPreReportUrl(String preReportUrl) {
+		this.preReportUrl = preReportUrl;
+	}
+
+	public String getPostReportUrl() {
+		return postReportUrl;
+	}
+
+	public void setPostReportUrl(String postReportUrl) {
+		this.postReportUrl = postReportUrl;
 	}
 }

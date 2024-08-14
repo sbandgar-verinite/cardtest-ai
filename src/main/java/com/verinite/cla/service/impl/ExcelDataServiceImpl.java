@@ -14,8 +14,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +26,6 @@ import com.verinite.cla.service.ExcelDataService;
 @Service
 public class ExcelDataServiceImpl implements ExcelDataService {
 
-	private static final Logger logger = LoggerFactory.getLogger(ExcelDataServiceImpl.class);
 	private RunDataRepository runDataRepository;
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -73,7 +70,7 @@ public class ExcelDataServiceImpl implements ExcelDataService {
 				}
 				return true;
 			} catch (IOException e) {
-				logger.info("Message : {}, cause : {}", e.getMessage(), e.getCause());
+//				logger.info("Message : {}, cause : {}", e.getMessage(), e.getCause());
 			}
 		}
 		return false;
@@ -97,7 +94,7 @@ public class ExcelDataServiceImpl implements ExcelDataService {
 		try {
 			return OBJECT_MAPPER.readValue(attributesJson, HashMap.class);
 		} catch (JsonProcessingException e) {
-			logger.info("Message : {}, cause : {}", e.getMessage(), e.getCause());
+//			logger.info("Message : {}, cause : {}", e.getMessage(), e.getCause());
 			throw new IllegalArgumentException("wrong attributes formate");
 		}
 	}

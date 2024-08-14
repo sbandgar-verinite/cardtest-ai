@@ -1,8 +1,6 @@
 package com.verinite.cla.service.impl;
 
-import java.sql.Date;
 import java.util.List;
-import java.util.Objects;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,12 +32,12 @@ public class ProjectServiceImpl implements ProjectService {
 			if (project.getAttributes() != null) {
 				proj.setAttributes(project.getAttributes());
 			}
-			if (project.getBillingCycleSelectionCriteria() != null) {
-				proj.setBillingCycleSelectionCriteria(project.getBillingCycleSelectionCriteria());
-			}
-			if (!Objects.isNull(project.getDueDays())) {
-				proj.setDueDays(project.getDueDays());
-			}
+//			if (project.getBillingCycleSelectionCriteria() != null) {
+//				proj.setBillingCycleSelectionCriteria(project.getBillingCycleSelectionCriteria());
+//			}
+//			if (!Objects.isNull(project.getDueDays())) {
+//				proj.setDueDays(project.getDueDays());
+//			}
 			if (project.getFeatures() != null) {
 				proj.setFeatures(project.getFeatures());
 			}
@@ -52,9 +50,9 @@ public class ProjectServiceImpl implements ProjectService {
 			if (project.getTenantId() != null) {
 				proj.setTenantId(project.getTenantId());
 			}
-			if (project.getValidBillingCycles() != null && !project.getValidBillingCycles().isEmpty()) {
-				proj.setValidBillingCycles(project.getValidBillingCycles());
-			}
+//			if (project.getValidBillingCycles() != null && !project.getValidBillingCycles().isEmpty()) {
+//				proj.setValidBillingCycles(project.getValidBillingCycles());
+//			}
 			return projectRepository.save(proj);
 		}
 		return null;

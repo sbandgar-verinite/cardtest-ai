@@ -7,8 +7,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.tomcat.util.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -36,8 +34,6 @@ import com.verinite.cla.util.ZipUtil;
 @RestController
 public class ExternalController {
 
-	private final Logger logger = LoggerFactory.getLogger(getClass());
-
 	@Autowired
 	private RunPlanService runPlanService;
 
@@ -52,6 +48,9 @@ public class ExternalController {
 
 	@Value("${jenkins.creds}")
 	private String creds;
+
+	@Value("${local.ip}")
+	private String localhost;
 
 	@GetMapping("api/v1/ai/generate")
 	public ResponseEntity<GherkinFormat> generate(@RequestParam(value = "promptMessage") String promptMessage,
@@ -70,8 +69,9 @@ public class ExternalController {
 			String buildNumber = jsonObj.get("buildNumber").asText();
 			String fileName = jsonObj.get("fileName").asText();
 			String runPlanId = jsonObj.get("runPlanId").asText();
-			logger.info("Status : " + status + "Build Number : " + buildNumber + "fileName :" + fileName,
-					"runPlanId :" + runPlanId);
+			String type = runPlanId.substring(runPlanId.lastIndexOf('-') + 1);
+//			logger.info("Status : " + status + "Build Number : " + buildNumber + "fileName :" + fileName,
+//					"runPlanId :" + runPlanId);
 
 			if (status.equalsIgnoreCase("Success")) {
 				byte[] plainCredsBytes = creds.getBytes();
@@ -88,7 +88,7 @@ public class ExternalController {
 						HttpMethod.GET, entity, Resource.class);
 
 				if (result.getStatusCode().is2xxSuccessful()) {
-					logger.info(result.toString());
+//					logger.info(result.toString());
 					try (InputStream inputStream = result.getBody().getInputStream();
 							OutputStream outputStream = new FileOutputStream("static-files/" + fileName + ".zip")) {
 						byte[] buffer = new byte[1024];
@@ -102,10 +102,10 @@ public class ExternalController {
 					File destDir = new File("static-files/" + fileName);
 					ZipUtil.unzip(getFile("static-files/" + fileName + ".zip"), destDir);
 				}
-				runPlanService.updateStatus(runPlanId, RunPlanStatus.PRE_RUN_SUCCESS.name(),
-						"http://localhost:8090/api/v1/cardtest/" + fileName + "/serenity/index.html");
+				runPlanService.updateStatus(runPlanId, RunPlanStatus.BUILD_SUCCESS.getStatus(),
+						localhost + "/api/v1/cardtest/" + fileName + "/serenity/index.html", type);
 			} else {
-				runPlanService.updateStatus(runPlanId, RunPlanStatus.PRE_RUN_FAILURE.name(), null);
+				runPlanService.updateStatus(runPlanId, RunPlanStatus.BUILD_FAILED.getStatus(), null, type);
 			}
 		}
 	}

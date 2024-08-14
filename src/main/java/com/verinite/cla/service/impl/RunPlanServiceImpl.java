@@ -12,10 +12,12 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.verinite.cla.dto.StatusDto;
 import com.verinite.cla.entity.RunPlan;
-import com.verinite.cla.exception.BadRequestException;
 import com.verinite.cla.repository.RunPlanRepository;
 import com.verinite.cla.service.RunPlanService;
+import com.verinite.cla.util.Status;
+import com.verinite.commons.controlleradvice.BadRequestException;
 
 @Service
 public class RunPlanServiceImpl implements RunPlanService {
@@ -74,15 +76,30 @@ public class RunPlanServiceImpl implements RunPlanService {
 	}
 
 	@Override
-	public void updateStatus(String runPlanId, String status, String url) {
+	public void updateStatus(String runPlanId, String status, String url, String type) {
 		Optional<RunPlan> runPlan = runPlanRepository.findById(runPlanId);
 		if (runPlan.isEmpty()) {
 			throw new BadRequestException("Run Plan Not Found : " + runPlanId);
 		}
-		runPlan.get().setStatus(status);
-		if (url != null) {
-			runPlan.get().setReportUrl(url);
+
+		if (type.equalsIgnoreCase("pre")) {
+			runPlan.get().setPreRunStatus(status);
+			runPlan.get().setPreReportUrl(url);
+		} else if (type.equalsIgnoreCase("post")) {
+			runPlan.get().setPostRunStatus(status);
+			runPlan.get().setStatus(Status.COMPLETED.getStatus());
+			runPlan.get().setPostReportUrl(url);
 		}
 		runPlanRepository.save(runPlan.get());
+	}
+
+	@Override
+	public StatusDto checkStatus(String runPlanId) {
+		Optional<RunPlan> runPlan = runPlanRepository.findById(runPlanId);
+		if (runPlan.isEmpty()) {
+			throw new BadRequestException("Run Plan Not Found : " + runPlanId);
+		}
+		return new StatusDto(runPlan.get().getPreRunStatus(), runPlan.get().getPreReportUrl(),
+				runPlan.get().getPostRunStatus(), runPlan.get().getPostReportUrl());
 	}
 }

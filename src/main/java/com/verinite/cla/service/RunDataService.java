@@ -6,7 +6,6 @@ import org.apache.coyote.BadRequestException;
 
 import com.verinite.cla.entity.RunData;
 
-
 public interface RunDataService {
 
 	public RunData addRunData(RunData runData);

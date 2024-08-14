@@ -2,8 +2,9 @@ package com.verinite.cla.service;
 
 import java.util.List;
 
+import com.verinite.cla.dto.StatusDto;
 import com.verinite.cla.entity.RunPlan;
-import com.verinite.cla.exception.BadRequestException;
+import com.verinite.commons.controlleradvice.BadRequestException;
 
 public interface RunPlanService {
 
@@ -19,5 +20,7 @@ public interface RunPlanService {
 
 	public String fetchRunPlan(String runPlanId, String scenarioType) throws BadRequestException, Exception;
 
-	public void updateStatus(String runPlanId, String status, String url);
+	public void updateStatus(String runPlanId, String status, String url, String type);
+
+	public StatusDto checkStatus(String runPlanId);
 }

@@ -1,6 +1,6 @@
 package com.verinite.cla.dto;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -12,9 +12,9 @@ public class ProjectDto {
 	private String tenantId;
 	private List<String> features;
 	private Date startDate;
-	private List<Integer> validBillingCycles;
-	private String billingCycleSelectionCriteria;
-	private int dueDays;
+//	private List<Integer> validBillingCycles;
+//	private String billingCycleSelectionCriteria;
+//	private int dueDays;
 	private Map<String, String> attributes;
 
 
@@ -27,9 +27,9 @@ public class ProjectDto {
 		this.tenantId = tenantId;
 		this.features = features;
 		this.startDate = startDate;
-		this.validBillingCycles = validBillingCycles;
-		this.billingCycleSelectionCriteria = billingCycleSelectionCriteria;
-		this.dueDays = dueDays;
+//		this.validBillingCycles = validBillingCycles;
+//		this.billingCycleSelectionCriteria = billingCycleSelectionCriteria;
+//		this.dueDays = dueDays;
 	}
 	public ProjectDto() {
 		super();
@@ -58,24 +58,24 @@ public class ProjectDto {
 	public void setStartDate(Date startDate) {
 		this.startDate = startDate;
 	}
-	public List<Integer> getValidBillingCycles() {
-		return validBillingCycles;
-	}
-	public void setValidBillingCycles(List<Integer> validBillingCycles) {
-		this.validBillingCycles = validBillingCycles;
-	}
-	public String getBillingCycleSelectionCriteria() {
-		return billingCycleSelectionCriteria;
-	}
-	public void setBillingCycleSelectionCriteria(String billingCycleSelectionCriteria) {
-		this.billingCycleSelectionCriteria = billingCycleSelectionCriteria;
-	}
-	public int getDueDays() {
-		return dueDays;
-	}
-	public void setDueDays(int dueDays) {
-		this.dueDays = dueDays;
-	}
+//	public List<Integer> getValidBillingCycles() {
+//		return validBillingCycles;
+//	}
+//	public void setValidBillingCycles(List<Integer> validBillingCycles) {
+//		this.validBillingCycles = validBillingCycles;
+//	}
+//	public String getBillingCycleSelectionCriteria() {
+//		return billingCycleSelectionCriteria;
+//	}
+//	public void setBillingCycleSelectionCriteria(String billingCycleSelectionCriteria) {
+//		this.billingCycleSelectionCriteria = billingCycleSelectionCriteria;
+//	}
+//	public int getDueDays() {
+//		return dueDays;
+//	}
+//	public void setDueDays(int dueDays) {
+//		this.dueDays = dueDays;
+//	}
 	public Map<String, String> getAttributes() {
 		return attributes;
 	}

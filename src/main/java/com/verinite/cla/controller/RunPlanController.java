@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.verinite.cla.dto.StatusDto;
 import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.service.RunPlanService;
 
@@ -54,4 +55,10 @@ public class RunPlanController {
 		String response = runPlanService.fetchRunPlan(runPlanId, scenarioType);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+	
+	@GetMapping(value = "/check-status/{id}")
+	public StatusDto checkStatus(@PathVariable("id") String runPlanId) {
+		return runPlanService.checkStatus(runPlanId);
+	}
+
 }
