@@ -29,6 +29,7 @@ import com.verinite.cla.service.LlamaAiService;
 import com.verinite.cla.service.RunPlanService;
 import com.verinite.cla.util.RunPlanStatus;
 import com.verinite.cla.util.ZipUtil;
+import com.verinite.commons.controlleradvice.BadRequestException;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
@@ -110,7 +111,17 @@ public class ExternalController {
 		}
 	}
 
+	public void createDirectory(String directoryPath) {
+		File directory = new File(directoryPath);
+		if (!directory.exists()) {
+			if (!directory.mkdirs()) {
+				throw new BadRequestException("Failed to create directory.");
+			}
+		}
+	}
+
 	public File getFile(String filePath) {
+		createDirectory(filePath);
 		return new File(filePath);
 	}
 }
