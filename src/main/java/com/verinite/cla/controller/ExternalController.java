@@ -5,10 +5,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.logging.Logger;
 
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.verinite.cla.dto.GherkinFormat;
 import com.verinite.cla.service.LlamaAiService;
 import com.verinite.cla.service.RunPlanService;
+import com.verinite.cla.util.PropertiesConfig;
 import com.verinite.cla.util.RunPlanStatus;
 import com.verinite.cla.util.ZipUtil;
 import com.verinite.commons.controlleradvice.BadRequestException;
@@ -34,6 +35,8 @@ import com.verinite.commons.controlleradvice.BadRequestException;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 public class ExternalController {
+
+	private static final Logger logger = Logger.getLogger(ExternalController.class.getName());
 
 	@Autowired
 	private RunPlanService runPlanService;
@@ -44,16 +47,10 @@ public class ExternalController {
 	@Autowired
 	private RestTemplate restTemplate;
 
-	@Value("${jenkins.baseUrl}")
-	private String jenkinsUrl;
+	@Autowired
+	private PropertiesConfig propsConfig;
 
-	@Value("${jenkins.creds}")
-	private String creds;
-
-	@Value("${local.ip}")
-	private String localhost;
-
-	@GetMapping("api/v1/ai/generate")
+	@GetMapping("/ai/generate")
 	public ResponseEntity<GherkinFormat> generate(@RequestParam(value = "promptMessage") String promptMessage,
 			@RequestParam(value = "count", defaultValue = "") String count) throws Exception {
 		if (promptMessage == null) {
@@ -70,12 +67,12 @@ public class ExternalController {
 			String buildNumber = jsonObj.get("buildNumber").asText();
 			String fileName = jsonObj.get("fileName").asText();
 			String runPlanId = jsonObj.get("runPlanId").asText();
-			String type = runPlanId.substring(runPlanId.lastIndexOf('-') + 1);
-//			logger.info("Status : " + status + "Build Number : " + buildNumber + "fileName :" + fileName,
-//					"runPlanId :" + runPlanId);
+			String type = fileName.substring(fileName.lastIndexOf('-') + 1);
+			logger.info("Status : " + status + "Build Number : " + buildNumber + "fileName :" + fileName + "runPlanId :"
+					+ runPlanId);
 
 			if (status.equalsIgnoreCase("Success")) {
-				byte[] plainCredsBytes = creds.getBytes();
+				byte[] plainCredsBytes = propsConfig.getJenkinsCreds().getBytes();
 				byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes, false);
 				String base64Creds = new String(base64CredsBytes);
 
@@ -84,12 +81,12 @@ public class ExternalController {
 				HttpEntity<String> entity = new HttpEntity<String>(headers);
 
 				ResponseEntity<Resource> result = restTemplate.exchange(
-						jenkinsUrl + "/job/CARDTEST.AI/" + buildNumber
+						propsConfig.getJenkinsUrl() + "/job/" + propsConfig.getJenkinsJobName() + "/" + buildNumber
 								+ "/artifact/target/site/serenity/*zip*/serenity.zip",
 						HttpMethod.GET, entity, Resource.class);
 
 				if (result.getStatusCode().is2xxSuccessful()) {
-//					logger.info(result.toString());
+					logger.info(result.toString());
 					try (InputStream inputStream = result.getBody().getInputStream();
 							OutputStream outputStream = new FileOutputStream("static-files/" + fileName + ".zip")) {
 						byte[] buffer = new byte[1024];
@@ -104,7 +101,7 @@ public class ExternalController {
 					ZipUtil.unzip(getFile("static-files/" + fileName + ".zip"), destDir);
 				}
 				runPlanService.updateStatus(runPlanId, RunPlanStatus.BUILD_SUCCESS.getStatus(),
-						localhost + "/api/v1/cardtest/" + fileName + "/serenity/index.html", type);
+						propsConfig.getHostUrl() + "/api/v1/cardtest/" + fileName + "/serenity/index.html", type);
 			} else {
 				runPlanService.updateStatus(runPlanId, RunPlanStatus.BUILD_FAILED.getStatus(), null, type);
 			}
@@ -124,4 +121,5 @@ public class ExternalController {
 		createDirectory(filePath);
 		return new File(filePath);
 	}
+
 }

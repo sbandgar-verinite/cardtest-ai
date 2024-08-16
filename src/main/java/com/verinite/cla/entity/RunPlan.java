@@ -1,6 +1,5 @@
 package com.verinite.cla.entity;
 
-import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -25,7 +24,7 @@ public class RunPlan {
 	private int sequenceNumber;
 	private String projectId;
 	private String description;
-	private Date runDate;
+	private Long runDate;
 	private Integer billingCycleConsidered;
 	@Type(JsonType.class)
 	@Column(columnDefinition = "VARBINARY(5000)")
@@ -39,7 +38,7 @@ public class RunPlan {
 	private String preReportUrl;
 	private String postReportUrl;
 
-	public RunPlan(String id, int sequenceNumber, String projectId, String description, Date runDate,
+	public RunPlan(String id, int sequenceNumber, String projectId, String description, Long runDate,
 			Integer billingCycleConsidered, List<RunScenario> preRunScripts, List<RunScenario> postRunScripts,
 			String status) {
 		super();
@@ -98,11 +97,11 @@ public class RunPlan {
 		this.postRunScripts = postRunScripts;
 	}
 
-	public Date getRunDate() {
+	public Long getRunDate() {
 		return runDate;
 	}
 
-	public void setRunDate(Date runDate) {
+	public void setRunDate(Long runDate) {
 		this.runDate = runDate;
 	}
 

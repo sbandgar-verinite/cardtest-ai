@@ -1,5 +1,6 @@
 package com.verinite.cla.service.impl;
 
+import java.time.Instant;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
@@ -22,6 +23,7 @@ public class ProjectServiceImpl implements ProjectService {
 
 	@Override
 	public Project addProject(Project project) {
+		project.setStartDate(Instant.now().toEpochMilli());
 		return projectRepository.save(project);
 	}
 

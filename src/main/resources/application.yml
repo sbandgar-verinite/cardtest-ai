@@ -36,8 +36,21 @@ data:
       baseUrl: http://localhost:8089
       
 jenkins:
+  job.name: CARDTEST.AI
   baseUrl: http://192.168.3.195:8080
-  creds: admin:0d9722b0993b43b594727e3a7c73737b
+  creds: admin:0d9722b0993b43b594727e3a7c73737b #sankha:1155b93dd2fba10d968714ad841c910c59 - sankha
   
 local:
   ip: http://192.168.3.195:8090
+  
+github:
+  api:
+    repo:
+      url: https://api.github.com/repos/sbandgar-verinite/automation-scripts/contents/src/test/resources/features
+      branch: main
+      auth.token: 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  #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 - sankha
+  commit:
+    name: Sumeet Bandgar
+    email: sumeet.bandgar@verinite.com
+    message:
+    

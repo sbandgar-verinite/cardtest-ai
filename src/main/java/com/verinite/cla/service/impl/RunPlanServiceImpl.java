@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,8 @@ import com.verinite.commons.controlleradvice.BadRequestException;
 
 @Service
 public class RunPlanServiceImpl implements RunPlanService {
+
+	private static final Logger logger = Logger.getLogger(RunPlanServiceImpl.class.getName());
 
 	@Autowired
 	private RunPlanRepository runPlanRepository;
@@ -82,6 +85,7 @@ public class RunPlanServiceImpl implements RunPlanService {
 			throw new BadRequestException("Run Plan Not Found : " + runPlanId);
 		}
 
+		logger.info("Update status for runPlanId : " + runPlanId + "type : " + type);
 		if (type.equalsIgnoreCase("pre")) {
 			runPlan.get().setPreRunStatus(status);
 			runPlan.get().setPreReportUrl(url);
@@ -99,7 +103,7 @@ public class RunPlanServiceImpl implements RunPlanService {
 		if (runPlan.isEmpty()) {
 			throw new BadRequestException("Run Plan Not Found : " + runPlanId);
 		}
-		return new StatusDto(runPlan.get().getPreRunStatus(), runPlan.get().getPreReportUrl(),
-				runPlan.get().getPostRunStatus(), runPlan.get().getPostReportUrl());
+		return new StatusDto(runPlan.get().getStatus(), runPlan.get().getPreRunStatus(),
+				runPlan.get().getPreReportUrl(), runPlan.get().getPostRunStatus(), runPlan.get().getPostReportUrl());
 	}
 }

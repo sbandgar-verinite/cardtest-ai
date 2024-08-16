@@ -14,16 +14,16 @@ import io.swagger.v3.oas.annotations.Operation;
 @RestController
 @RequestMapping("/excel")
 public class ExcelController {
-	
-	 @Autowired
-	 private ExcelDataService excelDataService;
 
-	    @Operation(summary = "Imports data from the specified Excel file and saves it to the database.")
-	    @GetMapping("/import")
-	    public ResponseEntity<String> importData() {
-	        if(excelDataService.importDataFromExcel()) {
-	        	return ResponseEntity.ok("Data imported successfully");
-	        }else
-	        	return new ResponseEntity<>("Data importe failed", HttpStatus.INTERNAL_SERVER_ERROR);
-	    }
+	@Autowired
+	private ExcelDataService excelDataService;
+
+	@Operation(summary = "Imports data from the specified Excel file and saves it to the database.")
+	@GetMapping("/import")
+	public ResponseEntity<String> importData() {
+		if (excelDataService.importDataFromExcel()) {
+			return ResponseEntity.ok("Data imported successfully");
+		} else
+			return new ResponseEntity<>("Data importe failed", HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 }

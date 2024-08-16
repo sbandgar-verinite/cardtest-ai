@@ -1,6 +1,5 @@
 package com.verinite.cla.entity;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,33 +16,33 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="project")
+@Table(name = "project")
 public class Project {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.UUID)
-	@Column(name="id", columnDefinition="VARCHAR(255)")
+	@GeneratedValue(strategy = GenerationType.UUID)
+	@Column(name = "id", columnDefinition = "VARCHAR(255)")
 	private String id;
-	
+
 	private String name;
 	private String tenantId;
-	
+
 	@Type(JsonType.class)
 	private List<String> features;
-	
-	private Date startDate;
-	
+
+	private Long startDate;
+
 //	@Type(JsonType.class)
 //	private List<Integer> validBillingCycles;
-	
+
 //	private String billingCycleSelectionCriteria; //NEAREST from startDate, FARTHEST from startDate, FARTHEST WITHIN 15DAYS from startDate
 
 //	private int dueDays;
-	
+
 	@ElementCollection
 	private Map<String, String> attributes = new HashMap<>();
 
-	public Project(String id, String name, String tenantId, List<String> features, Date startDate,
+	public Project(String id, String name, String tenantId, List<String> features, Long startDate,
 			List<Integer> validBillingCycles, String billingCycleSelectionCriteria, int dueDays,
 			Map<String, String> attributes) {
 		super();
@@ -94,11 +93,11 @@ public class Project {
 		this.features = features;
 	}
 
-	public Date getStartDate() {
+	public Long getStartDate() {
 		return startDate;
 	}
 
-	public void setStartDate(Date startDate) {
+	public void setStartDate(Long startDate) {
 		this.startDate = startDate;
 	}
 
@@ -134,6 +133,4 @@ public class Project {
 		this.attributes = attributes;
 	}
 
-	
-	
 }

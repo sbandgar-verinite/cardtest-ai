@@ -19,11 +19,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -35,13 +35,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import com.verinite.cla.config.Constants;
 import com.verinite.cla.dto.ProjectDto;
+import com.verinite.cla.dto.StatusDto;
 import com.verinite.cla.entity.Feature;
 import com.verinite.cla.entity.Project;
 import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.entity.Scenario;
 import com.verinite.cla.model.RunConfig;
 import com.verinite.cla.model.RunScenario;
+import com.verinite.cla.util.PropertiesConfig;
 import com.verinite.cla.util.RunPlanStatus;
 import com.verinite.cla.util.Status;
 import com.verinite.commons.controlleradvice.BadRequestException;
@@ -84,9 +87,6 @@ public class SetupService {
 	@Autowired
 	private RestTemplate restTemplate;
 
-	@Value("${jenkins.baseUrl}")
-	private String jenkinsUrl;
-
 	@Autowired
 	private ConfigurationRepository configRepo;
 
@@ -95,6 +95,11 @@ public class SetupService {
 
 	@Autowired
 	private ExtService extService;
+
+	@Autowired
+	private PropertiesConfig propsConfig;
+
+	private final SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 
 //	public Tenant addNewTenant(TenantDto tenantDto) {
 //		Tenant tenant = new Tenant();
@@ -117,9 +122,8 @@ public class SetupService {
 		Project project = new Project();
 		project.setName(projectDto.getName());
 		project.setTenantId(projectDto.getTenantId());
-		SimpleDateFormat df = new SimpleDateFormat("dd-mm-yyyy");
 		if (projectDto.getStartDate() != null) {
-			project.setStartDate(new Date(projectDto.getStartDate().getTime()));
+			project.setStartDate(projectDto.getStartDate());
 		}
 //		project.setValidBillingCycles(projectDto.getValidBillingCycles());
 		project.setFeatures(projectDto.getFeatures());
@@ -131,7 +135,7 @@ public class SetupService {
 
 	}
 
-	public void createRunPlanForProject(String projectId) throws ParseException {
+	public StatusResponse createRunPlanForProject(String projectId) throws ParseException {
 		Project project = new Project();
 		project = projectService.findProjectById(projectId);
 		Optional<Config> runConf = configRepo.findByKeyName("RUN_CONFIG");
@@ -179,7 +183,7 @@ public class SetupService {
 //			}
 //		}
 
-		Date startDate = project.getStartDate();
+		Long startDate = project.getStartDate();
 		for (String featureCode : project.getFeatures()) {
 
 			feature = featureService.findFeatureByCode(featureCode);
@@ -196,7 +200,7 @@ public class SetupService {
 
 //				if (runConfig.getRunType().equals("Normal")) {
 				JsonNode node = calculateRunTime(runConfig.getRunType(), runConf.get());
-				Date date = calculateDate(startDate, node);
+				Date newDate = calculateDate(startDate.toString(), node);
 //					runCalendar.add(Calendar.DATE, (runConfig.getRunNumber().intValue() - 1));
 //				}
 
@@ -219,14 +223,14 @@ public class SetupService {
 //						nextDueDate = new Date(runCalendar.getTime().getTime());
 //					}
 //				}
-
+				startDate = newDate.toInstant().toEpochMilli();
 				preRunScenario.setScenarios(runConfig.getPreRunScripts());
 				featureRunScenario.put("PrerunScenarios", preRunScenario);
 				postRunScenario.setScenarios(runConfig.getPostRunScripts());
 				featureRunScenario.put("PostrunScenarios", postRunScenario);
 //				Date date = new Date(runCalendar.getTime().getTime());
-				startDate = new Date(date.getTime());
-				listOfRunScenarios.put(startDate, featureRunScenario);
+//				startDate = new Date(date.getTime());
+				listOfRunScenarios.put(newDate, featureRunScenario);
 			}
 
 //			runStartDate = project.getStartDate();
@@ -247,7 +251,7 @@ public class SetupService {
 		for (Date runDate : listOfRunScenarios.keySet()) {
 			RunPlan runPlan = new RunPlan();
 			runPlan.setProjectId(project.getId());
-			runPlan.setRunDate(runDate);
+			runPlan.setRunDate(runDate.toInstant().toEpochMilli());
 			runCounter++;
 			runPlan.setSequenceNumber(runCounter);
 			runPlan.setDescription("Run Number: #" + runCounter);
@@ -269,17 +273,18 @@ public class SetupService {
 			runPlan.setStatus(Status.CREATED.getStatus());
 			runPlanService.addRunPlan(runPlan);
 		}
+		return new StatusResponse("Success", HttpStatus.OK.value(), "RunPlans Created Successfully");
 	}
 
-	private Date calculateDate(Date startDate, JsonNode node) {
+	private Date calculateDate(String date, JsonNode node) throws ParseException {
 		String jsFunc = node.get("js_func").asText();
 		String functionName = node.get("function_name").asText();
 
 		StringBuilder str = new StringBuilder(jsFunc);
 		str.append(functionName);
-		str.append("(").append(startDate.toString()).append(");");
+		str.append("(").append(date).append(");");
 		String calDate = extService.executeJs(str.toString());
-		return new Date(calDate);
+		return formatter.parse(calDate);
 
 //		try (Context context = Context.create()) {
 //			context.eval("js", jsFunc);
@@ -315,7 +320,7 @@ public class SetupService {
 		return null;
 	}
 
-	public void createFeatureFile(String tenantId, String projectId, String runPlanId) throws TemplateNotFoundException,
+	public StatusResponse createFeatureFile(String projectId, String runPlanId) throws TemplateNotFoundException,
 			MalformedTemplateNameException, freemarker.core.ParseException, IOException, TemplateException {
 
 		RunPlan runPlan = new RunPlan();
@@ -360,6 +365,8 @@ public class SetupService {
 //				}
 //			}
 //		}
+		return new StatusResponse(Constants.SUCCESS, HttpStatus.OK.value(),
+				propsConfig.getFeatureFileCreatedSuccessfully());
 	}
 
 	private void genScenarioFile(RunPlan runPlan, List<RunScenario> runScenarios, String outFeatureCode, String type)
@@ -433,11 +440,6 @@ public class SetupService {
 				}
 			}
 		}
-		if (type.equalsIgnoreCase("pre")) {
-
-		} else if (type.equalsIgnoreCase("pre")) {
-
-		}
 	}
 
 	public StatusResponse uploadFeatureFileToGit(String runPlanId, String type) throws IOException {
@@ -454,13 +456,12 @@ public class SetupService {
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-//		headers.setBearerAuth("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");
-		headers.setBearerAuth("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");
+		headers.setBearerAuth(propsConfig.getGitFeatureRepoAuthToken());
 		HttpEntity<String> entity = new HttpEntity<String>(headers);
 
-		String baseURL = "https://api.github.com/repos/sbandgar-verinite/automation-scripts/contents/src/test/resources/features";
-		ResponseEntity<List<Map<String, Object>>> responseEntity = restTemplate.exchange(baseURL, HttpMethod.GET,
-				entity, new ParameterizedTypeReference<List<Map<String, Object>>>() {
+		ResponseEntity<List<Map<String, Object>>> responseEntity = restTemplate.exchange(
+				propsConfig.getGitFeatureRepoUrl(), HttpMethod.GET, entity,
+				new ParameterizedTypeReference<List<Map<String, Object>>>() {
 				});
 		List<Map<String, Object>> entities = responseEntity.getBody();
 
@@ -468,7 +469,8 @@ public class SetupService {
 		String url = (String) entities.get(0).get("url");
 		System.out.println("SHA & URL: " + sha + " " + url);
 
-		baseURL += "/" + runPlanId + "-" + type + ".feature?ref=main";
+		String baseURL = propsConfig.getGitFeatureRepoUrl() + "/" + runPlanId + "-" + type + ".feature?ref="
+				+ propsConfig.getGitFeatureRepobranch();
 
 		JSONObject bodyParam = new JSONObject();
 		JSONObject committer = new JSONObject();
@@ -491,8 +493,7 @@ public class SetupService {
 
 		HttpHeaders headers1 = new HttpHeaders();
 		headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-//		headers1.setBearerAuth("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");
-		headers1.setBearerAuth("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");
+		headers1.setBearerAuth(propsConfig.getGitFeatureRepoAuthToken());
 		HttpEntity<String> entity1 = new HttpEntity<String>(bodyParam.toString(), headers1);
 
 		ResponseEntity<Object> responseEntity1 = restTemplate.exchange(baseURL, HttpMethod.PUT, entity1,
@@ -506,16 +507,14 @@ public class SetupService {
 		}
 	}
 
-	public StatusResponse buildJenkinsJob(String runPlanId, String type) throws InterruptedException {
+	public StatusDto buildJenkinsJob(String runPlanId, String type) throws InterruptedException {
 		RunPlan runPlan = runPlanService.findRunPlanById(runPlanId);
 		if (Objects.isNull(runPlan)) {
 			throw new BadRequestException("Run Plan Not Found");
 		}
 		/* Issue Crumb */
 
-		// String plainCreds = "sankha:1155b93dd2fba10d968714ad841c910c59";
-		String plainCreds = "admin:0d9722b0993b43b594727e3a7c73737b";
-		byte[] plainCredsBytes = plainCreds.getBytes();
+		byte[] plainCredsBytes = propsConfig.getJenkinsCreds().getBytes();
 		byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes, false);
 		String base64Creds = new String(base64CredsBytes);
 
@@ -524,8 +523,9 @@ public class SetupService {
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		HttpEntity<String> entity = new HttpEntity<String>(headers);
 
-		ResponseEntity<Map<String, String>> responseEntity = restTemplate.exchange(jenkinsUrl + "/crumbIssuer/api/json",
-				HttpMethod.GET, entity, new ParameterizedTypeReference<Map<String, String>>() {
+		ResponseEntity<Map<String, String>> responseEntity = restTemplate.exchange(
+				propsConfig.getJenkinsUrl() + "/crumbIssuer/api/json", HttpMethod.GET, entity,
+				new ParameterizedTypeReference<Map<String, String>>() {
 				});
 		Map<String, String> entities = responseEntity.getBody();
 		Map<String, List<String>> respHeader = responseEntity.getHeaders();
@@ -543,15 +543,9 @@ public class SetupService {
 		headerst.set("Cookie", respHeader.get("Set-Cookie").get(0));
 		HttpEntity<String> entityt = new HttpEntity<String>(headerst);
 
-//		ResponseEntity<Map<String,Object>> responseEntityt = restTemplate.exchange("http://localhost:8080/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId, 
-//				HttpMethod.POST, 
-//				entityt, 
-//				new ParameterizedTypeReference<Map<String,Object>>() {}
-//		);
-
-		ResponseEntity<String> responseEntityt = restTemplate.exchange(
-				jenkinsUrl + "/job/CARDTEST.AI/buildWithParameters?RUN_PLAN_ID=" + runPlanId + "&SCENARIO_TYPE=" + type,
-				HttpMethod.POST, entityt, String.class);
+		String fullUrl = propsConfig.getJenkinsUrl() + "/job/" + propsConfig.getJenkinsJobName()
+				+ "/buildWithParameters?RUN_PLAN_ID=" + runPlanId + "&SCENARIO_TYPE=" + type;
+		ResponseEntity<String> responseEntityt = restTemplate.exchange(fullUrl, HttpMethod.POST, entityt, String.class);
 
 		HttpHeaders respHeaders = responseEntityt.getHeaders();
 		String location = respHeaders.getLocation().toString();
@@ -580,6 +574,7 @@ public class SetupService {
 		} else if (type.equalsIgnoreCase("post")) {
 			runPlan.setPostRunStatus(RunPlanStatus.BUILD_TRIGGERED.getStatus());
 		}
-		return new StatusResponse(Status.INPROGRESS.name());
+		runPlanService.updateRunPlan(runPlan);
+		return runPlanService.checkStatus(runPlanId);
 	}
 }

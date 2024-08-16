@@ -13,6 +13,7 @@ public class WebSecConfig implements WebMvcConfigurer {
 		registry.addResourceHandler("/public/**").addResourceLocations("classpath:/public/");
 		registry.addResourceHandler("/resources/**").addResourceLocations("classpath:/resources/");
 		registry.addResourceHandler("/META-INF/resources/**").addResourceLocations("classpath:/META-INF/resources/");
+		registry.addResourceHandler("static-files/**").addResourceLocations("static-files/");
 	}
 
 }

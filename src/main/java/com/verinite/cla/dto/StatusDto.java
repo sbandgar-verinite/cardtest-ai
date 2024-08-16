@@ -2,17 +2,30 @@ package com.verinite.cla.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(value = Include.NON_NULL)
 public class StatusDto {
 
+	@JsonProperty("status")
+	private String status;
+
+	@JsonProperty("pre_run_status")
 	private String preRunStatus;
+
+	@JsonProperty("pre_report_url")
 	private String preReportUrl;
+
+	@JsonProperty("post_run_status")
 	private String postRunStatus;
+
+	@JsonProperty("post_report_url")
 	private String postReportUrl;
 
-	public StatusDto(String preRunStatus, String preReportUrl, String postRunStatus, String postReportUrl) {
+	public StatusDto(String status, String preRunStatus, String preReportUrl, String postRunStatus,
+			String postReportUrl) {
 		super();
+		this.status = status;
 		this.preRunStatus = preRunStatus;
 		this.preReportUrl = preReportUrl;
 		this.postRunStatus = postRunStatus;
@@ -21,6 +34,14 @@ public class StatusDto {
 
 	public StatusDto() {
 		super();
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
 	public String getPreRunStatus() {

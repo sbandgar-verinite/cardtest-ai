@@ -1,6 +1,5 @@
 package com.verinite.cla.dto;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -11,14 +10,14 @@ public class ProjectDto {
 	private String name;
 	private String tenantId;
 	private List<String> features;
-	private Date startDate;
+	private Long startDate;
 //	private List<Integer> validBillingCycles;
 //	private String billingCycleSelectionCriteria;
 //	private int dueDays;
 	private Map<String, String> attributes;
 
 
-	public ProjectDto(String name, String tenantId, List<String> features, Date startDate,
+	public ProjectDto(String name, String tenantId, List<String> features, Long startDate,
 			List<Integer> validBillingCycles, String billingCycleSelectionCriteria, int dueDays
 			, Map<String, String> attributes
 			) {
@@ -52,10 +51,10 @@ public class ProjectDto {
 	public void setFeatures(List<String> features) {
 		this.features = features;
 	}
-	public Date getStartDate() {
+	public Long getStartDate() {
 		return startDate;
 	}
-	public void setStartDate(Date startDate) {
+	public void setStartDate(Long startDate) {
 		this.startDate = startDate;
 	}
 //	public List<Integer> getValidBillingCycles() {
