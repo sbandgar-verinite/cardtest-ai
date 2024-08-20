@@ -60,7 +60,7 @@ public class ExcelDataServiceImpl implements ExcelDataService {
 						runData.setCode(getCellValue(row, codeColIdx));
 						runData.setEntityName(getCellValue(row, entityNameColIdx));
 						runData.setAttributes(parseAttributes(getCellValue(row, attributesColIdx)));
-						runData.setScenarioCode(getCellValue(row, scenarioCodeColIdx));
+//						runData.setScenarioCode(getCellValue(row, scenarioCodeColIdx));
 						runDataList.add(runData);
 					}
 				}

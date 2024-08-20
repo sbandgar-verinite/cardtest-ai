@@ -58,13 +58,13 @@ public class SetupController {
 //	}
 
 	@PostMapping(value = "/projects/{projectId}/runplans")
-	public StatusResponse createRunPLan(@PathVariable String tenantId, @PathVariable String projectId)
+	public StatusResponse createRunPLan(@PathVariable String projectId)
 			throws ParseException {
 		return setupService.createRunPlanForProject(projectId);
 	}
 
 	@GetMapping(value = "/projects/{projectId}/runplans")
-	public List<RunPlan> getAllRunPLan(@PathVariable String tenantId, @PathVariable String projectId)
+	public List<RunPlan> getAllRunPLan(@PathVariable String projectId)
 			throws ParseException {
 		return runPlanService.findAllRunPlanByProjectId(projectId);
 	}

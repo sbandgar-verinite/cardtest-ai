@@ -1,5 +1,6 @@
 package com.verinite.cla.controller;
 
+import java.text.ParseException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.verinite.cla.dto.ProjectDto;
 import com.verinite.cla.entity.Project;
 import com.verinite.cla.service.ProjectService;
+import com.verinite.cla.service.RunDataService;
+import com.verinite.cla.service.SetupService;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
@@ -25,9 +28,18 @@ public class ProjectController {
 	@Autowired
 	private ProjectService projectService;
 
+	@Autowired
+	private SetupService setupService;
+
+	@Autowired
+	private RunDataService runDataService;
+
 	@PostMapping
-	public Project addNewProject(@RequestBody Project project) {
-		return projectService.addProject(project);
+	public Project addNewProject(@RequestBody Project project) throws ParseException {
+		project = projectService.addProject(project);
+		setupService.createRunPlanForProject(project.getId());
+		runDataService.generateData(project.getId());
+		return project;
 	}
 
 	@GetMapping

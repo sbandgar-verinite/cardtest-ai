@@ -2,15 +2,17 @@ package com.verinite.cla.service.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
@@ -19,12 +21,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.verinite.cla.entity.Feature;
+import com.verinite.cla.entity.Project;
 import com.verinite.cla.entity.RunData;
 import com.verinite.cla.entity.Scenario;
 import com.verinite.cla.repository.RunDataRepository;
 import com.verinite.cla.service.FeatureService;
+import com.verinite.cla.service.ProjectService;
 import com.verinite.cla.service.RunDataService;
 import com.verinite.cla.service.ScenarioService;
+import com.verinite.commons.controlleradvice.BadRequestException;
 
 import jakarta.transaction.Transactional;
 
@@ -42,6 +47,9 @@ public class RunDataServiceImpl implements RunDataService {
 
 	@Autowired
 	private ScenarioService scenarioService;
+
+	@Autowired
+	private ProjectService projectService;
 
 	@Value("${data.gen.service.baseUrl}")
 	private String dgBaseUrl;
@@ -71,59 +79,61 @@ public class RunDataServiceImpl implements RunDataService {
 		return runDataRepository.getRunDataByCode(code);
 	}
 
-	@Override
-	public List<RunData> findRunDataByCodeAndScenarioCode(String code, String scenarioCode) {
-		return runDataRepository.getRunDataByCodeAndScenarioCode(code, scenarioCode);
-	}
+//	@Override
+//	public List<RunData> findRunDataByCodeAndScenarioCode(String code, String scenarioCode) {
+//		return runDataRepository.getRunDataByCodeAndScenarioCode(code, scenarioCode);
+//	}
 
 	@Override
+	@Async
 	@Transactional
-	public Object generateData(String featureId) throws BadRequestException {
-		Feature feature = featureService.findFeatureByCode(featureId);
-		if (feature == null) {
-			throw new BadRequestException("Feature Not Found");
-		}
+	public void generateData(String projectId) {
+		Project project = projectService.findProjectById(projectId);
 
-		List<String> scenarios = new ArrayList<>();
-		if (!CollectionUtils.isEmpty(feature.getRunConfigs())) {
-			feature.getRunConfigs().stream().forEach(x -> {
-				scenarios.addAll(x.getPreRunScripts());
-				scenarios.addAll(x.getPostRunScripts());
+		for (String feat : project.getFeatures()) {
+			Feature feature = featureService.findFeatureByCode(feat);
+			if (feature == null) {
+				throw new BadRequestException("Feature Not Found");
+			}
+
+			List<String> scenarios = new ArrayList<>();
+			if (!CollectionUtils.isEmpty(feature.getRunConfigs())) {
+				feature.getRunConfigs().stream().forEach(x -> {
+					scenarios.addAll(x.getPreRunScripts());
+					scenarios.addAll(x.getPostRunScripts());
+				});
+			}
+
+			List<Scenario> scenarioList = scenarioService.findAllScenarios(scenarios);
+			List<String> steps = new ArrayList<>();
+			Set<String> entities = new HashSet<>();
+			scenarioList.parallelStream().forEach(x -> {
+				steps.addAll(x.getGivenStatements());
+				steps.addAll(x.getThenOutcomes());
+				steps.addAll(x.getWhenConditions());
+				entities.addAll(x.getEntitiesRequired());
 			});
-		}
 
-		List<Scenario> scenarioList = scenarioService.findAllScenarios(scenarios);
-		List<String> steps = new ArrayList<>();
-		scenarioList.parallelStream().forEach(x -> {
-			steps.addAll(x.getGivenStatements());
-			steps.addAll(x.getThenOutcomes());
-			steps.addAll(x.getWhenConditions());
-		});
+			String regex = "\\{(.*?)\\}";
+			Pattern pattern = Pattern.compile(regex);
 
-		String regex = "\\{(.*?)\\}";
-		Pattern pattern = Pattern.compile(regex);
+			Map<String, JsonNode> reqObj = createInputRequestForDG(steps, pattern);
+			JsonNode response = restTemplate.postForObject(dgBaseUrl + "/api/dg/v1/project/1/generate?output=json",
+					reqObj, JsonNode.class);
 
-		Map<String, JsonNode> reqObj = createInputRequestForDG(steps, pattern);
-		JsonNode response = restTemplate.postForObject(dgBaseUrl + "/api/dg/v1/project/1/generate?output=json", reqObj,
-				JsonNode.class);
-
-		runDataRepository.deleteByCode(featureId);
-		for (Scenario scenario : scenarioList) {
-			for (String entity : scenario.getEntitiesRequired()) {
+			runDataRepository.deleteByCode(feature.getCode());
+			for (String entity : entities) {
 				if (response.get(entity) != null) {
 					RunData rd = new RunData();
 					rd.setAttributes(convertToHashMap(response.get(entity)));
-					rd.setCode(featureId);
+					rd.setCode(feature.getCode());
 					rd.setEntityName(entity);
-					rd.setScenarioCode(scenario.getCode());
 					runDataRepository.save(rd);
 				}
 			}
 		}
-
-		return response;
 	}
-
+	
 	private Map<String, String> convertToHashMap(JsonNode jsonNode) {
 		Map<String, String> map = new HashMap<>();
 		if (jsonNode.isObject()) {

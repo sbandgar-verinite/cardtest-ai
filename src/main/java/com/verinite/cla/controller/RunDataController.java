@@ -44,8 +44,9 @@ public class RunDataController {
 		return runDataService.updateRunData(runData);
 	}
 
-	@PostMapping(value = "/feature/{id}/generate")
-	public Object generateData(@PathVariable String id) throws BadRequestException {
-		return runDataService.generateData(id);
+	@PostMapping(value = "/project/{project_id}/generate")
+	public void generateData(@PathVariable("project_id") String projectId)
+			throws BadRequestException {
+		runDataService.generateData(projectId);
 	}
 }
