@@ -6,13 +6,16 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.verinite.cla.dto.RunPlanDto;
 import com.verinite.cla.dto.StatusDto;
 import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.repository.RunPlanRepository;
@@ -27,6 +30,9 @@ public class RunPlanServiceImpl implements RunPlanService {
 
 	@Autowired
 	private RunPlanRepository runPlanRepository;
+
+	@Autowired
+	private ModelMapper mapper;
 
 	@Override
 	public RunPlan addRunPlan(RunPlan runPlan) {
@@ -49,8 +55,13 @@ public class RunPlanServiceImpl implements RunPlanService {
 	}
 
 	@Override
-	public List<RunPlan> findAllRunPlanByProjectId(String projectId) {
-		return runPlanRepository.getAllRunPlanByProjectId(projectId);
+	public List<RunPlanDto> findAllRunPlanByProjectId(String projectId) {
+		List<RunPlan> runPlanList = runPlanRepository.getAllRunPlanByProjectId(projectId);
+		List<RunPlanDto> runPlanDtoList = new ArrayList<>();
+		for (RunPlan runPlan : runPlanList) {
+			runPlanDtoList.add(mapper.map(runPlan, RunPlanDto.class));
+		}
+		return runPlanDtoList;
 	}
 
 	@Override
@@ -103,7 +114,6 @@ public class RunPlanServiceImpl implements RunPlanService {
 		if (runPlan.isEmpty()) {
 			throw new BadRequestException("Run Plan Not Found : " + runPlanId);
 		}
-		return new StatusDto(runPlan.get().getStatus(), runPlan.get().getPreRunStatus(),
-				runPlan.get().getPreReportUrl(), runPlan.get().getPostRunStatus(), runPlan.get().getPostReportUrl());
+		return mapper.map(runPlan, StatusDto.class);
 	}
 }

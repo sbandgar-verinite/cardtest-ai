@@ -22,16 +22,24 @@ public class StatusDto {
 	@JsonProperty("post_report_url")
 	private String postReportUrl;
 
-	public StatusDto(String status, String preRunStatus, String preReportUrl, String postRunStatus,
-			String postReportUrl) {
-		super();
-		this.status = status;
-		this.preRunStatus = preRunStatus;
-		this.preReportUrl = preReportUrl;
-		this.postRunStatus = postRunStatus;
-		this.postReportUrl = postReportUrl;
-	}
+	@JsonProperty("batch_run_status")
+	private String batchRunStatus;
 
+	@JsonProperty("is_pre_exec_enable")
+	private Boolean isPreExecEnable;
+
+	@JsonProperty("is_post_exec_enable")
+	private Boolean isPostExecEnable;
+
+	@JsonProperty("is_pre_upload_enable")
+	private Boolean isPreUploadEnable;
+
+	@JsonProperty("is_post_upload_enable")
+	private Boolean isPostUploadEnable;
+
+	@JsonProperty("is_pre_verify")
+	private Boolean isPreVerify;
+	
 	public StatusDto() {
 		super();
 	}
@@ -74,5 +82,45 @@ public class StatusDto {
 
 	public void setPostReportUrl(String postReportUrl) {
 		this.postReportUrl = postReportUrl;
+	}
+
+	public Boolean getIsPreExecEnable() {
+		return isPreExecEnable;
+	}
+
+	public void setIsPreExecEnable(Boolean isPreExecEnable) {
+		this.isPreExecEnable = isPreExecEnable;
+	}
+
+	public Boolean getIsPostExecEnable() {
+		return isPostExecEnable;
+	}
+
+	public void setIsPostExecEnable(Boolean isPostExecEnable) {
+		this.isPostExecEnable = isPostExecEnable;
+	}
+
+	public Boolean getIsPreUploadEnable() {
+		return isPreUploadEnable;
+	}
+
+	public void setIsPreUploadEnable(Boolean isPreUploadEnable) {
+		this.isPreUploadEnable = isPreUploadEnable;
+	}
+
+	public Boolean getIsPostUploadEnable() {
+		return isPostUploadEnable;
+	}
+
+	public void setIsPostUploadEnable(Boolean isPostUploadEnable) {
+		this.isPostUploadEnable = isPostUploadEnable;
+	}
+
+	public String getBatchRunStatus() {
+		return batchRunStatus;
+	}
+
+	public void setBatchRunStatus(String batchRunStatus) {
+		this.batchRunStatus = batchRunStatus;
 	}
 }

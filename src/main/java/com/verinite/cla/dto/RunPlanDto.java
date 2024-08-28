@@ -1,68 +1,82 @@
-package com.verinite.cla.entity;
+package com.verinite.cla.dto;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.verinite.cla.model.RunScenario;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+@JsonInclude(value = Include.NON_EMPTY)
+public class RunPlanDto {
 
-@Entity
-@Table(name = "run-plan")
-public class RunPlan {
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.UUID)
-	@Column(name = "id", columnDefinition = "VARCHAR(255)")
+	@JsonProperty("id")
 	private String id;
+
+	@JsonProperty("sequence_number")
 	private int sequenceNumber;
+
+	@JsonProperty("project_id")
 	private String projectId;
+
+	@JsonProperty("description")
 	private String description;
+
+	@JsonProperty("run_date")
 	private Long runDate;
-	private Integer billingCycleConsidered;
-	@Type(JsonType.class)
-	@Column(columnDefinition = "VARBINARY(5000)")
+
+	@JsonProperty("pre_run_scripts")
 	private List<RunScenario> preRunScripts;
-	@Type(JsonType.class)
-	@Column(columnDefinition = "VARBINARY(5000)")
+
+	@JsonProperty("post_run_scripts")
 	private List<RunScenario> postRunScripts;
+
+	@JsonProperty("status")
 	private String status;
+
+	@JsonProperty("pre_run_status")
 	private String preRunStatus;
+
+	@JsonProperty("post_run_status")
 	private String postRunStatus;
+
+	@JsonProperty("batch_run_status")
 	private String batchRunStatus;
+
+	@JsonProperty("pre_report_url")
 	private String preReportUrl;
+
+	@JsonProperty("post_report_url")
 	private String postReportUrl;
+
+	@JsonProperty("batch_job_enabled")
+	private String batchJobEnabled;
+
+	@JsonProperty("pre_run_task_id")
 	private Long preRunTaskId;
+
+	@JsonProperty("post_run_task_id")
 	private Long postRunTaskId;
+
+	@JsonProperty("batch_run_task_id")
 	private Long batchRunTaskId;
+
+	@JsonProperty("instance_id")
 	private Long instanceId;
-	private Boolean isPreExecEnable = Boolean.FALSE;
-	private Boolean isPreUploadEnable = Boolean.FALSE;
-	private Boolean isPostExecEnable = Boolean.FALSE;
-	private Boolean isPostUploadEnable = Boolean.FALSE;
 
-	public RunPlan(String id, int sequenceNumber, String projectId, String description, Long runDate,
-			Integer billingCycleConsidered, List<RunScenario> preRunScripts, List<RunScenario> postRunScripts,
-			String status) {
-		super();
-		this.id = id;
-		this.sequenceNumber = sequenceNumber;
-		this.projectId = projectId;
-		this.description = description;
-		this.runDate = runDate;
-		this.billingCycleConsidered = billingCycleConsidered;
-		this.preRunScripts = preRunScripts;
-		this.postRunScripts = postRunScripts;
-		this.status = status;
-	}
+	@JsonProperty("is_pre_exec_enable")
+	private Boolean isPreExecEnable;
 
-	public RunPlan() {
+	@JsonProperty("is_post_exec_enable")
+	private Boolean isPostExecEnable;
+
+	@JsonProperty("is_pre_upload_enable")
+	private Boolean isPreUploadEnable;
+
+	@JsonProperty("is_post_upload_enable")
+	private Boolean isPostUploadEnable;
+
+	public RunPlanDto() {
 		super();
 	}
 
@@ -82,12 +96,28 @@ public class RunPlan {
 		this.sequenceNumber = sequenceNumber;
 	}
 
+	public String getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
+	}
+
 	public String getDescription() {
 		return description;
 	}
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public Long getRunDate() {
+		return runDate;
+	}
+
+	public void setRunDate(Long runDate) {
+		this.runDate = runDate;
 	}
 
 	public List<RunScenario> getPreRunScripts() {
@@ -104,30 +134,6 @@ public class RunPlan {
 
 	public void setPostRunScripts(List<RunScenario> postRunScripts) {
 		this.postRunScripts = postRunScripts;
-	}
-
-	public Long getRunDate() {
-		return runDate;
-	}
-
-	public void setRunDate(Long runDate) {
-		this.runDate = runDate;
-	}
-
-	public String getProjectId() {
-		return projectId;
-	}
-
-	public void setProjectId(String projectId) {
-		this.projectId = projectId;
-	}
-
-	public Integer getBillingCycleConsidered() {
-		return billingCycleConsidered;
-	}
-
-	public void setBillingCycleConsidered(Integer billingCycleConsidered) {
-		this.billingCycleConsidered = billingCycleConsidered;
 	}
 
 	public String getStatus() {
@@ -170,6 +176,22 @@ public class RunPlan {
 		this.postReportUrl = postReportUrl;
 	}
 
+	public String getBatchJobEnabled() {
+		return batchJobEnabled;
+	}
+
+	public void setBatchJobEnabled(String batchJobEnabled) {
+		this.batchJobEnabled = batchJobEnabled;
+	}
+
+	public String getBatchRunStatus() {
+		return batchRunStatus;
+	}
+
+	public void setBatchRunStatus(String batchRunStatus) {
+		this.batchRunStatus = batchRunStatus;
+	}
+
 	public Long getPreRunTaskId() {
 		return preRunTaskId;
 	}
@@ -200,14 +222,6 @@ public class RunPlan {
 
 	public void setInstanceId(Long instanceId) {
 		this.instanceId = instanceId;
-	}
-
-	public String getBatchRunStatus() {
-		return batchRunStatus;
-	}
-
-	public void setBatchRunStatus(String batchRunStatus) {
-		this.batchRunStatus = batchRunStatus;
 	}
 
 	public Boolean getIsPreExecEnable() {

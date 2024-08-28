@@ -2,6 +2,7 @@ package com.verinite.cla.service;
 
 import java.util.List;
 
+import com.verinite.cla.dto.RunPlanDto;
 import com.verinite.cla.dto.StatusDto;
 import com.verinite.cla.entity.RunPlan;
 import com.verinite.commons.controlleradvice.BadRequestException;
@@ -16,7 +17,7 @@ public interface RunPlanService {
 
 	public List<RunPlan> findAllRunPlan();
 
-	public List<RunPlan> findAllRunPlanByProjectId(String projectId);
+	public List<RunPlanDto> findAllRunPlanByProjectId(String projectId);
 
 	public String fetchRunPlan(String runPlanId, String scenarioType) throws BadRequestException, Exception;
 

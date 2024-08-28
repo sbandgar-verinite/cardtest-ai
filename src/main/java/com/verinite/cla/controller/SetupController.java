@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.verinite.cla.dto.RunPlanDto;
 import com.verinite.cla.dto.StatusDto;
-import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.service.RunPlanService;
 import com.verinite.cla.service.SetupService;
 import com.verinite.commons.dto.StatusResponse;
@@ -58,14 +58,12 @@ public class SetupController {
 //	}
 
 	@PostMapping(value = "/projects/{projectId}/runplans")
-	public StatusResponse createRunPLan(@PathVariable String projectId)
-			throws ParseException {
+	public StatusResponse createRunPLan(@PathVariable String projectId) throws ParseException {
 		return setupService.createRunPlanForProject(projectId);
 	}
 
 	@GetMapping(value = "/projects/{projectId}/runplans")
-	public List<RunPlan> getAllRunPLan(@PathVariable String projectId)
-			throws ParseException {
+	public List<RunPlanDto> getAllRunPLan(@PathVariable String projectId) throws ParseException {
 		return runPlanService.findAllRunPlanByProjectId(projectId);
 	}
 
@@ -77,7 +75,7 @@ public class SetupController {
 	}
 
 	@GetMapping(value = "/projects/{projectId}/runplans/{runPlanId}/feature-files/upload-git")
-	public ResponseEntity<StatusResponse> uploadFeatureFileForCurrentRunToGit(@PathVariable String projectId,
+	public ResponseEntity<Object> uploadFeatureFileForCurrentRunToGit(@PathVariable String projectId,
 			@PathVariable String runPlanId, @RequestParam String type) throws TemplateNotFoundException,
 			MalformedTemplateNameException, freemarker.core.ParseException, IOException, TemplateException {
 		return ResponseEntity.ok(setupService.uploadFeatureFileToGit(runPlanId, type));
@@ -87,6 +85,18 @@ public class SetupController {
 	public ResponseEntity<StatusDto> triggerRunForCurrentFeatureFile(@PathVariable String projectId,
 			@PathVariable String runPlanId, @RequestParam String type) throws InterruptedException {
 		return ResponseEntity.ok(setupService.buildJenkinsJob(runPlanId, type));
+	}
+
+	@GetMapping(value = "/runplans/{runPlanId}/execution")
+	public ResponseEntity<StatusDto> execution(@PathVariable String runPlanId, @RequestParam String type)
+			throws InterruptedException {
+		return ResponseEntity.ok(setupService.execution(runPlanId, type));
+	}
+
+	@GetMapping(value = "/runplans/{runPlanId}/verification")
+	public ResponseEntity<StatusDto> verification(@PathVariable String runPlanId, @RequestParam String type,
+			@RequestParam Boolean verificationStatus) {
+		return ResponseEntity.ok(setupService.verification(runPlanId, type, verificationStatus));
 	}
 
 }

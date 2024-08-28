@@ -1,6 +1,7 @@
 package com.verinite.cla.service.impl;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -128,6 +129,8 @@ public class RunDataServiceImpl implements RunDataService {
 					rd.setAttributes(convertToHashMap(response.get(entity)));
 					rd.setCode(feature.getCode());
 					rd.setEntityName(entity);
+					rd.setCreatedOn(new Date().toInstant().toEpochMilli());
+					rd.setProjectName(project.getName());
 					runDataRepository.save(rd);
 				}
 			}

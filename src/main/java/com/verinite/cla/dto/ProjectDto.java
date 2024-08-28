@@ -11,6 +11,7 @@ public class ProjectDto {
 	private String tenantId;
 	private List<String> features;
 	private Long startDate;
+	private Boolean batchJob;
 //	private List<Integer> validBillingCycles;
 //	private String billingCycleSelectionCriteria;
 //	private int dueDays;
@@ -87,5 +88,10 @@ public class ProjectDto {
 	public void setId(String id) {
 		this.id = id;
 	}
-	
+	public Boolean getBatchJob() {
+		return batchJob;
+	}
+	public void setBatchJob(Boolean batchJob) {
+		this.batchJob = batchJob;
+	}
 }

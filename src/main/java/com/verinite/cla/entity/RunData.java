@@ -14,18 +14,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="rundata")
+@Table(name = "rundata")
 public class RunData {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.UUID)
-	@Column(name="id", columnDefinition="VARCHAR(255)")
+	@GeneratedValue(strategy = GenerationType.UUID)
+	@Column(name = "id", columnDefinition = "VARCHAR(255)")
 	private String id;
 	private String code;
 	private String entityName;
+	private Long createdOn;
+	private String projectName;
 	@Type(JsonStringType.class)
 	private Map<String, String> attributes = new HashMap<String, String>();
-	
+
 	public RunData(String id, String code, String entityName, Map<String, String> attributes) {
 		super();
 		this.id = id;
@@ -69,5 +71,20 @@ public class RunData {
 	public void setAttributes(Map<String, String> attributes) {
 		this.attributes = attributes;
 	}
-	
+
+	public Long getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Long createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public String getProjectName() {
+		return projectName;
+	}
+
+	public void setProjectName(String projectName) {
+		this.projectName = projectName;
+	}
 }

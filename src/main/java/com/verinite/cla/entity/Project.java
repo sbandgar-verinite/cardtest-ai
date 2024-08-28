@@ -26,6 +26,7 @@ public class Project {
 
 	private String name;
 	private String tenantId;
+	private Boolean batchJob = Boolean.FALSE;
 
 	@Type(JsonType.class)
 	private List<String> features;
@@ -131,6 +132,14 @@ public class Project {
 
 	public void setAttributes(Map<String, String> attributes) {
 		this.attributes = attributes;
+	}
+
+	public Boolean getBatchJob() {
+		return batchJob;
+	}
+
+	public void setBatchJob(Boolean batchJob) {
+		this.batchJob = batchJob;
 	}
 
 }

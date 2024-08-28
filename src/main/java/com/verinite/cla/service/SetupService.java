@@ -36,6 +36,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.verinite.cla.config.Constants;
+import com.verinite.cla.dto.CamundaRequest;
+import com.verinite.cla.dto.CamundaResponse;
 import com.verinite.cla.dto.ProjectDto;
 import com.verinite.cla.dto.StatusDto;
 import com.verinite.cla.entity.Feature;
@@ -334,7 +336,9 @@ public class SetupService {
 		postRunScenarios = runPlan.getPostRunScripts();
 
 		genScenarioFile(runPlan, preRunScenarios, outFeatureCode, "pre");
+		runPlan.setIsPreUploadEnable(Boolean.TRUE);
 		genScenarioFile(runPlan, postRunScenarios, outFeatureCode, "post");
+		runPlan.setIsPostUploadEnable(Boolean.TRUE);
 
 //		for (RunScenario postRunScenario : postRunScenarios) {
 //			List<String> scenarioCodes = postRunScenario.getScenarios();
@@ -365,6 +369,7 @@ public class SetupService {
 //				}
 //			}
 //		}
+		runPlanService.addRunPlan(runPlan);
 		return new StatusResponse(Constants.SUCCESS, HttpStatus.OK.value(),
 				propsConfig.getFeatureFileCreatedSuccessfully());
 	}
@@ -442,7 +447,7 @@ public class SetupService {
 		}
 	}
 
-	public StatusResponse uploadFeatureFileToGit(String runPlanId, String type) throws IOException {
+	public Object uploadFeatureFileToGit(String runPlanId, String type) throws IOException {
 		RunPlan runPlan = runPlanService.findRunPlanById(runPlanId);
 		if (Objects.isNull(runPlan)) {
 			throw new BadRequestException("Run Plan Not Found");
@@ -501,7 +506,12 @@ public class SetupService {
 				});
 
 		if (responseEntity1.getStatusCode().is2xxSuccessful()) {
-			return new StatusResponse("Upload Successful");
+			if (type.equalsIgnoreCase(Constants.PRE_RUN_PLAN))
+				runPlan.setIsPreExecEnable(Boolean.TRUE);
+			else if (type.equalsIgnoreCase(Constants.POST_RUN_PLAN))
+				runPlan.setIsPostExecEnable(Boolean.TRUE);
+			runPlanService.addRunPlan(runPlan);
+			return runPlanService.checkStatus(runPlanId);
 		} else {
 			return new StatusResponse("Upload Failed");
 		}
@@ -576,5 +586,149 @@ public class SetupService {
 		}
 		runPlanService.updateRunPlan(runPlan);
 		return runPlanService.checkStatus(runPlanId);
+	}
+
+	public StatusDto execution(String runPlanId, String type) throws InterruptedException {
+		RunPlan runPlan = runPlanService.findRunPlanById(runPlanId);
+		if (Objects.isNull(runPlan))
+			throw new BadRequestException("Run Plan Not Found");
+		if (type == null)
+			throw new BadRequestException("Type Not Specified");
+
+		CamundaRequest request = new CamundaRequest();
+//		request.setProjectId(runPlan.getProjectId());
+//		request.setRunPlanId(runPlan.getId());
+		request.setType(type.toLowerCase());
+		CamundaResponse response = null;
+		StatusDto statusDto = new StatusDto();
+		if (type.equalsIgnoreCase(Constants.PRE_RUN_PLAN)) {
+			response = startCamundaWorkflow(request, runPlan);
+			statusDto = buildJenkinsJob(runPlanId, type);
+			runPlan.setInstanceId(response.getProcessInstanceKey());
+			runPlan.setPreRunTaskId(response.getNextTask().getTaskId());
+			runPlan.setIsPreUploadEnable(Boolean.FALSE);
+		} else if (type.equalsIgnoreCase(Constants.POST_RUN_PLAN)) {
+//			response = completeCamundaTask(request, runPlan.getInstanceId(), runPlan.getPostConfigRunTaskId());
+//			runPlan.setPostRunTaskId(response.getNextTask().getTaskId());
+			statusDto = buildJenkinsJob(runPlanId, type);
+			runPlan.setIsPostUploadEnable(Boolean.FALSE);
+		}
+		runPlanService.addRunPlan(runPlan);
+		return statusDto;
+	}
+
+	private CamundaResponse startCamundaWorkflow(CamundaRequest camundaRequest, RunPlan runPlan) {
+		System.out.println("In Start Flow");
+		String url = propsConfig.getCamundaHostId() + "/processes/bpmn/" + propsConfig.getCamundaBpmnProcessId()
+				+ "/start";
+		System.out.println("URL : " + url);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.setConnection("keep-alive");
+		HttpEntity<CamundaRequest> entity = new HttpEntity<CamundaRequest>(camundaRequest, headers);
+		ResponseEntity<CamundaResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity,
+				CamundaResponse.class);
+		System.out.print("Response Received ");
+		if (response.hasBody()) {
+			return response.getBody();
+		}
+		throw new BadRequestException("Invalid Response from Camunda Server");
+	}
+
+	public StatusDto verification(String runPlanId, String type, Boolean verificationStatus) {
+		RunPlan runPlan = runPlanService.findRunPlanById(runPlanId);
+		if (Objects.isNull(runPlan))
+			throw new BadRequestException("Run Plan Not Found");
+		if (type == null)
+			throw new BadRequestException("Type Not Specified");
+
+		Project projectDetails = projectService.findProjectById(runPlan.getProjectId());
+		if (Objects.isNull(projectDetails))
+			throw new BadRequestException("Project Not Found");
+
+		CamundaRequest request = new CamundaRequest();
+//		request.setProjectId(runPlan.getProjectId());
+//		request.setRunPlanId(runPlan.getId());
+		request.setType(type);
+		request.setIsBatch(projectDetails.getBatchJob());
+		Long taskId = 0L;
+		if (type.equalsIgnoreCase(Constants.PRE_RUN_PLAN)) {
+			taskId = runPlan.getPreRunTaskId();
+			request.setPreApproved(verificationStatus);
+		} else if (type.equalsIgnoreCase(Constants.BATCH_RUN_PLAN)) {
+			taskId = runPlan.getBatchRunTaskId();
+			request.setBatchApproved(verificationStatus);
+		} else if (type.equalsIgnoreCase(Constants.POST_RUN_PLAN)) {
+			taskId = runPlan.getPostRunTaskId();
+			request.setPostApproved(verificationStatus);
+		}
+
+		CamundaResponse response = completeCamundaTask(request, runPlan.getInstanceId(), taskId);
+		if (type.equalsIgnoreCase(Constants.PRE_RUN_PLAN)) {
+			if (verificationStatus) {
+				runPlan.setPreRunStatus(RunPlanStatus.VERIFICATION_SUCCESS.getStatus());
+				runPlan.setIsPreExecEnable(Boolean.FALSE);
+			} else {
+				runPlan.setPreRunTaskId(response.getNextTask().getTaskId());
+				runPlan.setPreRunStatus(RunPlanStatus.VERIFICATION_FAILURE.getStatus());
+			}
+			if (projectDetails.getBatchJob()) {
+				runPlan.setBatchRunTaskId(response.getNextTask().getTaskId());
+			} else {
+				runPlan.setIsPostExecEnable(verificationStatus ? Boolean.TRUE : Boolean.FALSE);
+				runPlan.setPostRunTaskId(response.getNextTask().getTaskId());
+			}
+		} else if (type.equalsIgnoreCase(Constants.BATCH_RUN_PLAN)) {
+			if (!projectDetails.getBatchJob()) {
+				throw new BadRequestException("Batch Run Not Enabled");
+			}
+			if (!runPlan.getPreRunStatus().equalsIgnoreCase(RunPlanStatus.VERIFICATION_SUCCESS.getStatus())) {
+				throw new BadRequestException("Pre-Run Status Not Verified");
+			}
+			if (verificationStatus) {
+				runPlan.setIsPostExecEnable(verificationStatus ? Boolean.TRUE : Boolean.FALSE);
+				runPlan.setPostRunTaskId(response.getNextTask().getTaskId());
+				runPlan.setBatchRunStatus(RunPlanStatus.VERIFICATION_SUCCESS.getStatus());
+			} else {
+				runPlan.setBatchRunTaskId(response.getNextTask().getTaskId());
+				runPlan.setBatchRunStatus(RunPlanStatus.VERIFICATION_FAILURE.getStatus());
+			}
+
+		} else if (type.equalsIgnoreCase(Constants.POST_RUN_PLAN)) {
+			if (!runPlan.getPreRunStatus().equalsIgnoreCase(RunPlanStatus.VERIFICATION_SUCCESS.getStatus())) {
+				throw new BadRequestException("Pre-Run Status Not Verified");
+			}
+			if (projectDetails.getBatchJob()
+					&& !runPlan.getBatchRunStatus().equalsIgnoreCase(RunPlanStatus.VERIFICATION_SUCCESS.getStatus())) {
+				throw new BadRequestException("Batch-Run Status Not Verified");
+			}
+			if (verificationStatus) {
+				runPlan.setIsPostExecEnable(Boolean.FALSE);
+				runPlan.setIsPostUploadEnable(Boolean.FALSE);
+				runPlan.setIsPreExecEnable(Boolean.FALSE);
+				runPlan.setIsPreUploadEnable(Boolean.FALSE);
+				runPlan.setPostRunStatus(RunPlanStatus.VERIFICATION_SUCCESS.getStatus());
+			} else {
+				runPlan.setPostRunTaskId(response.getNextTask().getTaskId());
+				runPlan.setPostRunStatus(RunPlanStatus.VERIFICATION_FAILURE.getStatus());
+			}
+		} else {
+			throw new BadRequestException("No Such Type Found");
+		}
+		runPlanService.addRunPlan(runPlan);
+		return runPlanService.checkStatus(runPlanId);
+	}
+
+	private CamundaResponse completeCamundaTask(CamundaRequest request, Long instanceId, Long taskId) {
+		String url = propsConfig.getCamundaHostId() + "/processes/" + instanceId + "/task/" + taskId + "/complete";
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<CamundaRequest> entity = new HttpEntity<CamundaRequest>(request, headers);
+		ResponseEntity<CamundaResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity,
+				CamundaResponse.class);
+		if (response.hasBody()) {
+			return response.getBody();
+		}
+		throw new BadRequestException("Invalid Response from Camunda Server");
 	}
 }

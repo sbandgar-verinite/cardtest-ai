@@ -32,6 +32,20 @@ public class PropertiesConfig {
 	@Value("${host.ip}")
 	private String hostUrl;
 
+	@Value("${camunda.host.ip}")
+	private String camundaHostId;
+
+	@Value("${camunda.bpmn.process.id}")
+	private String camundaBpmnProcessId;
+
+	public String getCamundaHostId() {
+		return camundaHostId;
+	}
+
+	public String getCamundaBpmnProcessId() {
+		return camundaBpmnProcessId;
+	}
+
 	public String getHostUrl() {
 		return hostUrl;
 	}

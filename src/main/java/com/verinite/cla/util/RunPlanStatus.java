@@ -2,7 +2,8 @@ package com.verinite.cla.util;
 
 public enum RunPlanStatus {
 
-	BUILD_TRIGGERED("Build Triggered"), BUILD_SUCCESS("Build Success"), BUILD_FAILED("Build Failed");
+	BUILD_TRIGGERED("Build Triggered"), BUILD_SUCCESS("Build Success"), BUILD_FAILED("Build Failed"),
+	VERIFICATION_SUCCESS("Verification Success"), VERIFICATION_FAILURE("Verification Failure");
 
 	private String status;
 
