@@ -38,6 +38,27 @@ public class PropertiesConfig {
 	@Value("${camunda.bpmn.process.id}")
 	private String camundaBpmnProcessId;
 
+	@Value("${github.code.path.stepdefinitions}")
+	private String gitPathSetDefs;
+
+	@Value("${github.code.path.stepdefinitions}")
+	private String gitPathSteps;
+
+	@Value("${github.code.path.pages}")
+	private String gitPathPages;
+
+	public String getGitPathSetDefs() {
+		return gitPathSetDefs;
+	}
+
+	public String getGitPathSteps() {
+		return gitPathSteps;
+	}
+
+	public String getGitPathPages() {
+		return gitPathPages;
+	}
+
 	public String getCamundaHostId() {
 		return camundaHostId;
 	}
