@@ -102,7 +102,6 @@ public class RunPlanServiceImpl implements RunPlanService {
 			runPlan.get().setPreReportUrl(url);
 		} else if (type.equalsIgnoreCase("post")) {
 			runPlan.get().setPostRunStatus(status);
-			runPlan.get().setStatus(Status.COMPLETED.getStatus());
 			runPlan.get().setPostReportUrl(url);
 		}
 		runPlanRepository.save(runPlan.get());

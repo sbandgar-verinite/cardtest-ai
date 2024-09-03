@@ -70,7 +70,7 @@ public class SetupController {
 	@PostMapping(value = "/projects/{projectId}/runplans/{runPlanId}/feature-files")
 	public ResponseEntity<StatusResponse> createFeatureFileForCurrentRun(@PathVariable String projectId,
 			@PathVariable String runPlanId) throws TemplateNotFoundException, MalformedTemplateNameException,
-			freemarker.core.ParseException, IOException, TemplateException {
+			IOException, TemplateException, ParseException {
 		return ResponseEntity.ok(setupService.createFeatureFile(projectId, runPlanId));
 	}
 
@@ -99,4 +99,9 @@ public class SetupController {
 		return ResponseEntity.ok(setupService.verification(runPlanId, type, verificationStatus));
 	}
 
+	@GetMapping(value = "/runplans/{runPlanId}/automation/cases")
+	public ResponseEntity<Object> generateAutomationCases(@PathVariable String runPlanId, @RequestParam String type)
+			throws IOException {
+		return ResponseEntity.ok(setupService.generateAutomationCases(runPlanId, type));
+	}
 }

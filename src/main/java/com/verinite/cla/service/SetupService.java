@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -27,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -46,6 +49,7 @@ import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.entity.Scenario;
 import com.verinite.cla.model.RunConfig;
 import com.verinite.cla.model.RunScenario;
+import com.verinite.cla.service.impl.FileGenerationService;
 import com.verinite.cla.util.PropertiesConfig;
 import com.verinite.cla.util.RunPlanStatus;
 import com.verinite.cla.util.Status;
@@ -100,6 +104,12 @@ public class SetupService {
 
 	@Autowired
 	private PropertiesConfig propsConfig;
+
+	@Autowired
+	private FileGenerationService fileGenService;
+
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	private final SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 
@@ -323,7 +333,7 @@ public class SetupService {
 	}
 
 	public StatusResponse createFeatureFile(String projectId, String runPlanId) throws TemplateNotFoundException,
-			MalformedTemplateNameException, freemarker.core.ParseException, IOException, TemplateException {
+			MalformedTemplateNameException, ParseException, IOException, TemplateException {
 
 		RunPlan runPlan = new RunPlan();
 		runPlan = runPlanService.findRunPlanById(runPlanId);
@@ -335,6 +345,7 @@ public class SetupService {
 		List<RunScenario> postRunScenarios = new ArrayList<>();
 		postRunScenarios = runPlan.getPostRunScripts();
 
+		deleteFileIfExists(runPlan.getId());
 		genScenarioFile(runPlan, preRunScenarios, outFeatureCode, "pre");
 		runPlan.setIsPreUploadEnable(Boolean.TRUE);
 		genScenarioFile(runPlan, postRunScenarios, outFeatureCode, "post");
@@ -374,6 +385,17 @@ public class SetupService {
 				propsConfig.getFeatureFileCreatedSuccessfully());
 	}
 
+	private void deleteFileIfExists(String runPlanId) {
+		File preFile = new File(runPlanId + "-pre.txt");
+		File postFile = new File(runPlanId + "-post.txt");
+		if (preFile.exists()) {
+			preFile.delete();
+		}
+		if (postFile.exists()) {
+			postFile.delete();
+		}
+	}
+
 	private void genScenarioFile(RunPlan runPlan, List<RunScenario> runScenarios, String outFeatureCode, String type)
 			throws TemplateNotFoundException, MalformedTemplateNameException, freemarker.core.ParseException,
 			IOException, TemplateException {
@@ -383,21 +405,23 @@ public class SetupService {
 				outFeatureCode = runScenario.getFeatureCode();
 				String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-FEATURE";
 				templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName,
-						"Feature: " + runScenario.getFeatureCode(), null);
+						"Feature: " + runScenario.getFeatureCode());
 			}
 
 			String outScenarioCode = "";
-
+			List<String> examples = new ArrayList<>();
+			List<Map<String, String>> featureData = new ArrayList<>();
 			for (String scenarioCode : scenarioCodes) {
+				examples = new ArrayList<>();
+				featureData = new ArrayList<>();
 				if (!outScenarioCode.equals(scenarioCode)) {
 					outScenarioCode = scenarioCode;
 					String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
 							+ scenarioCode + "-SCENARIO";
 					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName,
-							"Scenario: " + scenarioCode, null);
+							"Scenario Outline: " + scenarioCode);
 				}
 				Scenario scenario = scenarioService.findScenarioByCode(scenarioCode);
-				Map<String, Object> featureData = new HashMap<>();
 				featureData = dataService.generateData(scenario.getEntitiesRequired(), runScenario.getFeatureCode(),
 						scenarioCode);
 
@@ -415,8 +439,8 @@ public class SetupService {
 
 					String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
 							+ scenarioCode + "-GIVEN";
-					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName, givenTemplate,
-							featureData);
+					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName, givenTemplate);
+					examples.add(givenTemplate);
 				}
 				for (String whenTemplate : scenario.getWhenConditions()) {
 					if (whenCount == 0) {
@@ -428,8 +452,8 @@ public class SetupService {
 
 					String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
 							+ scenarioCode + "-WHEN";
-					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName, whenTemplate,
-							featureData);
+					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName, whenTemplate);
+					examples.add(whenTemplate);
 				}
 				for (String thenTemplate : scenario.getThenOutcomes()) {
 					if (thenCount == 0) {
@@ -440,9 +464,50 @@ public class SetupService {
 					}
 					String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
 							+ scenarioCode + "-THEN";
-					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName, thenTemplate,
-							featureData);
+					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName, thenTemplate);
+					examples.add(thenTemplate);
 				}
+			}
+
+			List<String> attributeName = new ArrayList<>();
+			StringBuilder keys = new StringBuilder();
+			if (!CollectionUtils.isEmpty(featureData)) {
+				keys.append("     Examples:     \n");
+				keys.append("          |  ");
+				for (String statement : examples) {
+					fetch(statement, attributeName);
+				}
+				attributeName.forEach(x -> keys.append(x + "  |  "));
+				keys.append("\n");
+				for (Map<String, String> feature : featureData) {
+					keys.append("          |  ");
+					for (String statement : attributeName) {
+						if (feature.containsKey(statement)) {
+							keys.append(feature.get(statement) + "  |  ");
+						}
+					}
+					keys.append("\n");
+				}
+			}
+			templateService.createRunScenarioFile(runPlan.getId() + "-" + type,
+					String.valueOf(new Date().toInstant().toEpochMilli()), keys.toString());
+		}
+	}
+
+	public void fetch(String input, List<String> attributeName) {
+		String regex = "\\$\\{([^}]+)\\}";
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(input);
+		while (matcher.find()) {
+			String variableContent = matcher.group(1);
+			String[] parts = variableContent.split("\\.");
+			if (parts.length == 2) {
+//				String firstPart = parts[0];
+				String secondPart = parts[1];
+//				attributeName.add(firstPart);
+				attributeName.add(secondPart);
+			} else {
+				System.out.println("Variable format is not as expected: " + variableContent);
 			}
 		}
 	}
@@ -464,15 +529,40 @@ public class SetupService {
 		headers.setBearerAuth(propsConfig.getGitFeatureRepoAuthToken());
 		HttpEntity<String> entity = new HttpEntity<String>(headers);
 
-		ResponseEntity<List<Map<String, Object>>> responseEntity = restTemplate.exchange(
-				propsConfig.getGitFeatureRepoUrl(), HttpMethod.GET, entity,
-				new ParameterizedTypeReference<List<Map<String, Object>>>() {
-				});
-		List<Map<String, Object>> entities = responseEntity.getBody();
+		String sha = "";
+		String url = "";
+		ResponseEntity<String> alreadyExists = new ResponseEntity<String>(HttpStatus.OK);
+		try {
+			alreadyExists = restTemplate.exchange(
+					propsConfig.getGitFeatureRepoUrl() + "/" + runPlanId + "-" + type + ".feature", HttpMethod.GET,
+					entity, String.class);
+		} catch (Exception ex) {
+			ex.getStackTrace();
+		}
 
-		String sha = (String) entities.get(0).get("sha");
-		String url = (String) entities.get(0).get("url");
+		if (alreadyExists != null && alreadyExists.hasBody() && alreadyExists.getStatusCode().is2xxSuccessful()) {
+			JsonNode root = objectMapper.readTree(alreadyExists.getBody());
+			sha = root.path("sha").asText();
+			url = root.path("url").asText();
+		} else {
+			ResponseEntity<String> response = restTemplate.exchange(propsConfig.getGitFeatureRepoUrl(), HttpMethod.GET,
+					entity, String.class);
+//					new ParameterizedTypeReference<List<Map<String, Object>>>() {
+//					});
+//			List<Map<String, Object>> entities = responseEntity.getBody();
+			if (response.getStatusCode().is2xxSuccessful()) {
+				JsonNode root = objectMapper.readTree(response.getBody());
+				sha = root.path("sha").asText();
+				url = root.path("url").asText();
+			}
+		}
+
 		System.out.println("SHA & URL: " + sha + " " + url);
+
+//		System.out.println("entities: " + entities);
+//		String sha = (String) entities.get(0).get("sha");
+//		String url = (String) entities.get(0).get("url");
+//		System.out.println("SHA & URL: " + sha + " " + url);
 
 		String baseURL = propsConfig.getGitFeatureRepoUrl() + "/" + runPlanId + "-" + type + ".feature?ref="
 				+ propsConfig.getGitFeatureRepobranch();
@@ -504,6 +594,8 @@ public class SetupService {
 		ResponseEntity<Object> responseEntity1 = restTemplate.exchange(baseURL, HttpMethod.PUT, entity1,
 				new ParameterizedTypeReference<Object>() {
 				});
+
+		System.out.println("Response Entity: " + responseEntity1);
 
 		if (responseEntity1.getStatusCode().is2xxSuccessful()) {
 			if (type.equalsIgnoreCase(Constants.PRE_RUN_PLAN))
@@ -669,6 +761,7 @@ public class SetupService {
 				runPlan.setPreRunStatus(RunPlanStatus.VERIFICATION_SUCCESS.getStatus());
 				runPlan.setIsPreExecEnable(Boolean.FALSE);
 			} else {
+				runPlan.setIsPreUploadEnable(Boolean.TRUE);
 				runPlan.setPreRunTaskId(response.getNextTask().getTaskId());
 				runPlan.setPreRunStatus(RunPlanStatus.VERIFICATION_FAILURE.getStatus());
 			}
@@ -686,10 +779,10 @@ public class SetupService {
 				throw new BadRequestException("Pre-Run Status Not Verified");
 			}
 			if (verificationStatus) {
-				runPlan.setIsPostExecEnable(verificationStatus ? Boolean.TRUE : Boolean.FALSE);
 				runPlan.setPostRunTaskId(response.getNextTask().getTaskId());
 				runPlan.setBatchRunStatus(RunPlanStatus.VERIFICATION_SUCCESS.getStatus());
 			} else {
+				runPlan.setIsPreUploadEnable(Boolean.TRUE);
 				runPlan.setBatchRunTaskId(response.getNextTask().getTaskId());
 				runPlan.setBatchRunStatus(RunPlanStatus.VERIFICATION_FAILURE.getStatus());
 			}
@@ -709,9 +802,11 @@ public class SetupService {
 				runPlan.setIsPreUploadEnable(Boolean.FALSE);
 				runPlan.setPostRunStatus(RunPlanStatus.VERIFICATION_SUCCESS.getStatus());
 			} else {
+				runPlan.setIsPostUploadEnable(Boolean.TRUE);
 				runPlan.setPostRunTaskId(response.getNextTask().getTaskId());
 				runPlan.setPostRunStatus(RunPlanStatus.VERIFICATION_FAILURE.getStatus());
 			}
+			runPlan.setStatus(Status.COMPLETED.getStatus());
 		} else {
 			throw new BadRequestException("No Such Type Found");
 		}
@@ -731,4 +826,19 @@ public class SetupService {
 		}
 		throw new BadRequestException("Invalid Response from Camunda Server");
 	}
+
+	public Object generateAutomationCases(String runPlanId, String type) throws IOException {
+		RunPlan runPlan = runPlanService.findRunPlanById(runPlanId);
+		if (Objects.isNull(runPlan))
+			throw new BadRequestException("Run Plan Not Found");
+		if (type == null)
+			throw new BadRequestException("Type Not Specified");
+
+		Map<String, String> templates = fileGenService.loadTemplates();
+		String baseTemplate = templates.getOrDefault("StepDefinitionsTemplate.txt", "Template not found");
+		return baseTemplate.format(baseTemplate, "stepDefinitions", runPlanId, "CODE");
+//		return fileGenService.formatFileContent("StepDefinitionsTemplate", "stepDefinitions", runPlanId, "CODE");
+
+	}
+
 }

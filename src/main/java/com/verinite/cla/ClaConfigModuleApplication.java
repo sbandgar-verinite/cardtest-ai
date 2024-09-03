@@ -6,9 +6,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.client.RestTemplate;
+import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.templateresolver.FileTemplateResolver;
+import org.thymeleaf.templateresolver.ITemplateResolver;
 
 @SpringBootApplication
-@ComponentScan({"com.verinite.commons", "com.verinite.cla"})
+@ComponentScan({ "com.verinite.commons", "com.verinite.cla" })
 public class ClaConfigModuleApplication {
 
 	public static void main(String[] args) {
@@ -23,5 +26,21 @@ public class ClaConfigModuleApplication {
 	@Bean
 	public ModelMapper modelMapper() {
 		return new ModelMapper();
+	}
+
+	@Bean
+	public SpringTemplateEngine templateEngine() {
+		SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+		templateEngine.setTemplateResolver(templateResolver());
+		return templateEngine;
+	}
+
+	@Bean
+	public ITemplateResolver templateResolver() {
+		FileTemplateResolver templateResolver = new FileTemplateResolver();
+		templateResolver.setPrefix("src/main/resources/templates/");
+//		templateResolver.setSuffix(".html");
+//		templateResolver.setTemplateMode("HTML");
+		return templateResolver;
 	}
 }
