@@ -1,0 +1,11 @@
+{
+    "{} is on {} page": "screen.open(user, url);",
+    "he views the value in the field {}": "",
+    "he should be able to view {} in the field": "wait.until(ExpectedConditions.titleContains(data));\nlogger.info(\"Page title contains: {}\", data);\nif (driver != null) {\n    driver.quit();\n}",
+    "he enters the value {} in the field with a path {}": "",
+    "he enters the value {} in the field identified by {}": "",
+    "he enters the value {} in the field named {}": "WebElement searchBox = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name(elementName)));\nsearchBox.clear();\nsearchBox.sendKeys(data);",
+    "he clicks the button identified by {}": "",
+    "he clicks the button named {}": "WebElement searchButton = wait.until(ExpectedConditions.elementToBeClickable(By.name(buttonName)));\nsearchButton.click();\nlogger.info(\"Clicked the button: {}\", buttonName);",
+    "he clicks the element identified by {}": ""
+}

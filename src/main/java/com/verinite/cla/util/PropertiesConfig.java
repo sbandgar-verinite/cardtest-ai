@@ -16,7 +16,11 @@ public class PropertiesConfig {
 
 	@Value("${github.api.repo.branch}")
 	private String gitFeatureRepobranch;
+	
+	@Value("${github.api.repo.branch}")
+	private String gitStepDefinitionUrl;
 
+	
 	@Value("${github.api.repo.auth.token}")
 	private String gitFeatureRepoAuthToken;
 
@@ -69,6 +73,11 @@ public class PropertiesConfig {
 	public String getGitFeatureRepoUrl() {
 		return gitFeatureRepoUrl;
 	}
+
+	public String getGitStepDefinitionUrl() {
+		return gitStepDefinitionUrl;
+	}
+
 
 	public String getGitFeatureRepobranch() {
 		return gitFeatureRepobranch;
