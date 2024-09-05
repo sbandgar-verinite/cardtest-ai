@@ -23,6 +23,8 @@ import org.apache.tomcat.util.codec.binary.Base64;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -37,11 +39,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import com.oracle.truffle.regex.tregex.util.json.Json;
 import com.verinite.cla.config.Constants;
 import com.verinite.cla.dto.CamundaRequest;
 import com.verinite.cla.dto.CamundaResponse;
@@ -116,6 +120,18 @@ public class SetupService {
 	private ObjectMapper objectMapper;
 
 	private final SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+
+	@Autowired
+	private ResourceLoader resourceLoader;
+
+	public JsonNode readFromJson() {
+		Resource resource = resourceLoader.getResource("classpath:data.json");
+		try {
+			return objectMapper.readTree(resource.getInputStream());
+		} catch (IOException e) {
+			throw new BadRequestException("Config file not found");
+		}
+	}
 
 //	public Tenant addNewTenant(TenantDto tenantDto) {
 //		Tenant tenant = new Tenant();
@@ -434,6 +450,8 @@ public class SetupService {
 				int thenCount = 0;
 
 				for (String givenTemplate : scenario.getGivenStatements()) {
+					examples.add(givenTemplate);
+					givenTemplate = replacePercentEnclosed(givenTemplate);
 					if (givenCount == 0) {
 						givenCount++;
 						givenTemplate = "    Given " + givenTemplate;
@@ -444,9 +462,10 @@ public class SetupService {
 					String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
 							+ scenarioCode + "-GIVEN";
 					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName, givenTemplate);
-					examples.add(givenTemplate);
 				}
 				for (String whenTemplate : scenario.getWhenConditions()) {
+					examples.add(whenTemplate);
+					whenTemplate = replacePercentEnclosed(whenTemplate);
 					if (whenCount == 0) {
 						whenCount++;
 						whenTemplate = "    When " + whenTemplate;
@@ -457,9 +476,10 @@ public class SetupService {
 					String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
 							+ scenarioCode + "-WHEN";
 					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName, whenTemplate);
-					examples.add(whenTemplate);
 				}
 				for (String thenTemplate : scenario.getThenOutcomes()) {
+					examples.add(thenTemplate);
+					thenTemplate = replacePercentEnclosed(thenTemplate);
 					if (thenCount == 0) {
 						thenCount++;
 						thenTemplate = "    Then " + thenTemplate;
@@ -469,51 +489,103 @@ public class SetupService {
 					String templateName = runScenario.getFeatureCode() + "-" + runPlan.getSequenceNumber() + "-"
 							+ scenarioCode + "-THEN";
 					templateService.createRunScenarioFile(runPlan.getId() + "-" + type, templateName, thenTemplate);
-					examples.add(thenTemplate);
 				}
+				String keys = appendData(featureData, examples);
+				templateService.createRunScenarioFile(runPlan.getId() + "-" + type,
+						String.valueOf(new Date().toInstant().toEpochMilli()), keys.toString().replace("%", ""));
 			}
-
-			List<String> attributeName = new ArrayList<>();
-			StringBuilder keys = new StringBuilder();
-			if (!CollectionUtils.isEmpty(featureData)) {
-				keys.append("     Examples:     \n");
-				keys.append("          |  ");
-				for (String statement : examples) {
-					fetch(statement, attributeName);
-				}
-				attributeName.forEach(x -> keys.append(x + "  |  "));
-				keys.append("\n");
-				for (Map<String, String> feature : featureData) {
-					keys.append("          |  ");
-					for (String statement : attributeName) {
-						if (feature.containsKey(statement)) {
-							keys.append(feature.get(statement) + "  |  ");
-						}
-					}
-					keys.append("\n");
-				}
-			}
-			templateService.createRunScenarioFile(runPlan.getId() + "-" + type,
-					String.valueOf(new Date().toInstant().toEpochMilli()), keys.toString());
 		}
 	}
 
-	public void fetch(String input, List<String> attributeName) {
-		String regex = "\\$\\{([^}]+)\\}";
+	public String appendData(List<Map<String, String>> featureData, List<String> examples) {
+		String regex = "%(.*?)%";
+		Pattern pattern = Pattern.compile(regex);
+		List<String> attributeName = new ArrayList<>();
+		StringBuilder keys = new StringBuilder();
+//		if (!CollectionUtils.isEmpty(featureData)) {
+		keys.append("     Examples:     \n");
+		keys.append("          |  ");
+		for (String statement : examples) {
+			fetchBracesData(statement, attributeName);
+		}
+		attributeName.forEach(x -> keys.append(x + "  |  "));
+		keys.append("\n");
+//		JsonNode node = readFromJson();
+		JsonNode node = readFromConfig(Constants.DATA_CONFIG);
+		for (Map<String, String> feature : featureData) {
+			keys.append("          |  ");
+			for (String statement : attributeName) {
+				Matcher matcher = pattern.matcher(statement);
+				Boolean isExists = Boolean.FALSE;
+				while (matcher.find()) {
+					isExists = Boolean.TRUE;
+					keys.append(node.get(matcher.group(1)).asText() + "  |  ");
+				}
+				if (!isExists && feature.containsKey(statement)) {
+					keys.append(feature.get(statement) + "  |  ");
+				}
+			}
+			keys.append("\n");
+		}
+//		}
+		return keys.toString();
+	}
+
+//	public void fetch(String input, List<String> attributeName) {
+//		String regex = "\\$\\{([^}]+)\\}";
+//		Pattern pattern = Pattern.compile(regex);
+//		Matcher matcher = pattern.matcher(input);
+//		while (matcher.find()) {
+//			String variableContent = matcher.group(1);
+//			String[] parts = variableContent.split("\\.");
+//			if (parts.length == 2) {
+////				String firstPart = parts[0];
+//				String secondPart = parts[1];
+////				attributeName.add(firstPart);
+//				attributeName.add(secondPart);
+//			} else {
+//				System.out.println("Variable format is not as expected: " + variableContent);
+//			}
+//		}
+//	}
+
+	private JsonNode readFromConfig(String dataConfig) {
+		Optional<Config> config = configRepo.findByKeyName(dataConfig);
+		if (config.isEmpty()) {
+			throw new BadRequestException("Data Config Not Present");
+		}
+		try {
+			return mapper.readTree(config.get().getData());
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public void fetchBracesData(String element, List<String> attributeName) {
+		String regex = "<(.*?)>";
+//		String regex = "<([^%>\\s]+)>";
+//		String regex = "<%?([^%>\\s]+)%?>";
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(element);
+		while (matcher.find()) {
+			attributeName.add(matcher.group(1));
+		}
+	}
+
+	public String replacePercentEnclosed(String input) {
+		String regex = "%(.*?)%";
 		Pattern pattern = Pattern.compile(regex);
 		Matcher matcher = pattern.matcher(input);
+		StringBuffer result = new StringBuffer();
 		while (matcher.find()) {
-			String variableContent = matcher.group(1);
-			String[] parts = variableContent.split("\\.");
-			if (parts.length == 2) {
-//				String firstPart = parts[0];
-				String secondPart = parts[1];
-//				attributeName.add(firstPart);
-				attributeName.add(secondPart);
-			} else {
-				System.out.println("Variable format is not as expected: " + variableContent);
-			}
+			String value = matcher.group(1);
+			matcher.appendReplacement(result, value);
 		}
+		matcher.appendTail(result);
+		return result.toString();
 	}
 
 	public Object uploadFeatureFileToGit(String runPlanId, String type) throws IOException {

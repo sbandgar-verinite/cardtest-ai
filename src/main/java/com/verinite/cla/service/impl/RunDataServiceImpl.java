@@ -106,29 +106,32 @@ public class RunDataServiceImpl implements RunDataService {
 			}
 
 			List<Scenario> scenarioList = scenarioService.findAllScenarios(scenarios);
-			List<String> steps = new ArrayList<>();
 			Set<String> entities = new HashSet<>();
-			scenarioList.parallelStream().forEach(x -> {
+//			String entity = "";
+			String regex = "<([^%>\s]+)>";
+			Pattern pattern = Pattern.compile(regex);
+			Map<String, JsonNode> reqObj = new HashMap<>();
+			for (Scenario x : scenarioList) {
+				List<String> steps = new ArrayList<>();
 				steps.addAll(x.getGivenStatements());
 				steps.addAll(x.getThenOutcomes());
 				steps.addAll(x.getWhenConditions());
+//				entity = x.getEntitiesRequired().get(0);
 				entities.addAll(x.getEntitiesRequired());
-			});
+				createInputRequestForDG(steps, pattern, x.getEntitiesRequired().get(0), reqObj);
+			}
 
-			String regex = "\\{(.*?)\\}";
-			Pattern pattern = Pattern.compile(regex);
-
-			Map<String, JsonNode> reqObj = createInputRequestForDG(steps, pattern);
+//			Map<String, JsonNode> reqObj = createInputRequestForDG(steps, pattern, entity);
 			JsonNode response = restTemplate.postForObject(dgBaseUrl + "/api/dg/v1/project/1/generate?output=json",
 					reqObj, JsonNode.class);
 
 			runDataRepository.deleteByCode(feature.getCode());
-			for (String entity : entities) {
-				if (response.get(entity) != null) {
+			for (String ent : entities) {
+				if (response.get(ent) != null) {
 					RunData rd = new RunData();
-					rd.setAttributes(convertToHashMap(response.get(entity)));
+					rd.setAttributes(convertToHashMap(response.get(ent)));
 					rd.setCode(feature.getCode());
-					rd.setEntityName(entity);
+					rd.setEntityName(ent);
 					rd.setCreatedOn(new Date().toInstant().toEpochMilli());
 					rd.setProjectName(project.getName());
 					runDataRepository.save(rd);
@@ -136,7 +139,7 @@ public class RunDataServiceImpl implements RunDataService {
 			}
 		}
 	}
-	
+
 	private Map<String, String> convertToHashMap(JsonNode jsonNode) {
 		Map<String, String> map = new HashMap<>();
 		if (jsonNode.isObject()) {
@@ -149,24 +152,24 @@ public class RunDataServiceImpl implements RunDataService {
 		return map;
 	}
 
-	private Map<String, JsonNode> createInputRequestForDG(List<String> steps, Pattern pattern) {
-		Map<String, JsonNode> reqObj = new HashMap<>();
+	private Map<String, JsonNode> createInputRequestForDG(List<String> steps, Pattern pattern, String entity,
+			Map<String, JsonNode> reqObj) {
 		steps.stream().forEach(x -> {
 			Matcher matcher = pattern.matcher(x);
 			while (matcher.find()) {
 				String enclosedText = matcher.group(1);
-				String[] splitedString = enclosedText.split("\\.");
-				if (reqObj.containsKey(splitedString[0])) {
-					JsonNode value = reqObj.get(splitedString[0]);
+//				String[] splitedString = enclosedText.split("\\.");
+				if (reqObj.containsKey(entity)) {
+					JsonNode value = reqObj.get(entity);
 					if (value instanceof ObjectNode) {
 						ObjectNode objectNode = (ObjectNode) value;
-						objectNode.put(splitedString[1], "String");
-						reqObj.put(splitedString[0], objectNode);
+						objectNode.put(enclosedText, "String");
+						reqObj.put(entity, objectNode);
 					}
 				} else {
 					ObjectNode objectNode = new ObjectMapper().createObjectNode();
-					objectNode.put(splitedString[1], "String");
-					reqObj.put(splitedString[0], objectNode);
+					objectNode.put(enclosedText, "String");
+					reqObj.put(entity, objectNode);
 				}
 			}
 		});

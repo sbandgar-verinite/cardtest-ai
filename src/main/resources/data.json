@@ -1,0 +1,16 @@
+{
+	"google_url" : "https://www.google.com",
+	"google_search_input" : "q",
+	"google_search_button" : "btnK",
+	"amazon_url" : "https://www.flipkart.com/",
+	"amazon_search_input" : "q",
+	"amazon_search_button" : "search",
+	"product_name" : "iPhone 13",
+	"username_input":"standard_user",
+	"password_input":"secret_sauce",
+	"sauce_lab_url":"https://www.saucedemo.com/v1/index.html",
+	"username_tag":"user-name",
+	"password_tag":"password",
+	"login_button":"login-button",
+	"data":"Swag Labs"
+}
