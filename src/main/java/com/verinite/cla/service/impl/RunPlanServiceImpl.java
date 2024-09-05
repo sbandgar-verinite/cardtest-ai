@@ -77,11 +77,14 @@ public class RunPlanServiceImpl implements RunPlanService {
 	    try (BufferedReader reader = new BufferedReader(byteArrayToBufferedReader(Files.readAllBytes(path)))) {
 	        String line;
 	        while ((line = reader.readLine()) != null) {
-	            // Apply color formatting to Gherkin keywords (Case-sensitive) with dark colors
-	            line = line.replaceAll("(?<!\\S)(Feature:)(?!\\S)", "<span style='color: #8e44ad;'>$1</span>") // Dark Blue
-	                       .replaceAll("(?<!\\S)(Scenario Outline:)(?!\\S)", "<span style='color: #52be80;'>$1</span>") // Dark Green
-	                       .replaceAll("(?<!\\S)(Examples:)(?!\\S)", "<span style='color: #e74c3c;'>$1</span>") // Dark Red
-	                       .replaceAll("(?<!\\S)(Given|When|Then|And|But)(?!\\S)", "<span style='color: #f39c12;'>$1</span>"); // Dark Yellow
+	            // Apply color formatting to Gherkin keywords (Case-sensitive) with dark colors, font size, and weight
+	            line = line
+	                    .replaceAll("<", "&lt;") // Replace '<' with HTML entity
+	                    .replaceAll(">", "&gt;") // Replace '>' with HTML entity
+	                    .replaceAll("(?<!\\S)(Feature:)(?!\\S)", "<span style='color: #8e44ad; font-weight: 500; font-size: 16px;'>$1</span>") // Dark Blue
+	                    .replaceAll("(?<!\\S)(Scenario Outline:)(?!\\S)", "<span style='color: #52be80; font-weight: 500; font-size: 16px;'>$1</span>") // Dark Green
+	                    .replaceAll("(?<!\\S)(Examples:)(?!\\S)", "<span style='color: #e74c3c; font-weight: 500; font-size: 16px;'>$1</span>") // Dark Red
+	                    .replaceAll("(?<!\\S)(Given|When|Then|And|But)(?!\\S)", "<span style='color: #f39c12; font-weight: 500; font-size: 16px;'>$1</span>"); // Dark Yellow
 	            htmlContent.append("<p>").append(line).append("</p>");
 	        }
 	    }
