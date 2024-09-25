@@ -7,12 +7,14 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
 import io.hypersistence.utils.hibernate.type.json.JsonType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -28,8 +30,13 @@ public class Project {
 	private String tenantId;
 	private Boolean batchJob = Boolean.FALSE;
 
+	private Boolean isFlowAuto = Boolean.FALSE;
+
 	@Type(JsonType.class)
 	private List<String> features;
+
+	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Iteration> iterations;
 
 	private Long startDate;
 
@@ -140,6 +147,22 @@ public class Project {
 
 	public void setBatchJob(Boolean batchJob) {
 		this.batchJob = batchJob;
+	}
+
+	public Boolean getIsFlowAuto() {
+		return isFlowAuto;
+	}
+
+	public void setIsFlowAuto(Boolean isFlowAuto) {
+		this.isFlowAuto = isFlowAuto;
+	}
+
+	public List<Iteration> getIterations() {
+		return iterations;
+	}
+
+	public void setIterations(List<Iteration> iterations) {
+		this.iterations = iterations;
 	}
 
 }

@@ -1,5 +1,6 @@
 package com.verinite.cla.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -24,16 +25,16 @@ public class Scenario {
 	private String description;
 	@Type(JsonType.class)
 	@Column(columnDefinition = "VARBINARY(500)")
-	private List<String> givenStatements;
+	private List<String> givenStatements = new ArrayList<>();
 	@Type(JsonType.class)
 	@Column(columnDefinition = "VARBINARY(500)")
-	private List<String> whenConditions;
+	private List<String> whenConditions = new ArrayList<>();
 	@Type(JsonType.class)
 	@Column(columnDefinition = "VARBINARY(500)")
-	private List<String> thenOutcomes;
+	private List<String> thenOutcomes = new ArrayList<>();
 	@Type(JsonType.class)
 	@Column(columnDefinition = "VARBINARY(500)")
-	private List<String> entitiesRequired;
+	private List<String> entitiesRequired = new ArrayList<>();
 	
 	
 	public Scenario(String id, String code, String description, List<String> givenStatements,

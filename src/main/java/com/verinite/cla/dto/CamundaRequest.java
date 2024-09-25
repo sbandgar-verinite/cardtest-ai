@@ -25,6 +25,9 @@ public class CamundaRequest {
 	@JsonProperty("is_batch")
 	private Boolean isBatch;
 
+	@JsonProperty("is_flow_auto")
+	private Boolean isFlowAuto;
+
 	public CamundaRequest() {
 		super();
 	}
@@ -83,5 +86,13 @@ public class CamundaRequest {
 
 	public void setBatchApproved(Boolean batchApproved) {
 		this.batchApproved = batchApproved;
+	}
+
+	public Boolean getIsFlowAuto() {
+		return isFlowAuto;
+	}
+
+	public void setIsFlowAuto(Boolean isFlowAuto) {
+		this.isFlowAuto = isFlowAuto;
 	}
 }

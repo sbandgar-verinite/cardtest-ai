@@ -2,15 +2,19 @@ package com.verinite.cla.service.impl;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.verinite.cla.dto.ProjectDto;
+import com.verinite.cla.entity.Iteration;
 import com.verinite.cla.entity.Project;
+import com.verinite.cla.repository.IterationRepository;
 import com.verinite.cla.repository.ProjectRepository;
 import com.verinite.cla.service.ProjectService;
+import com.verinite.commons.controlleradvice.BadRequestException;
 
 @Service
 public class ProjectServiceImpl implements ProjectService {
@@ -21,9 +25,16 @@ public class ProjectServiceImpl implements ProjectService {
 	@Autowired
 	private ModelMapper modelMapper;
 
+	@Autowired
+	private IterationRepository iterationRepo;
+
 	@Override
-	public Project addProject(Project project) {
+	public Project addProject(ProjectDto projectDto) {
+//		List<Iteration> iterations = iterationRepo.saveAll(projectDto.getIterations());
+		Project project = modelMapper.map(projectDto, Project.class);
+		project.setIterations(projectDto.getIterations());
 		project.setStartDate(Instant.now().toEpochMilli());
+		projectDto.getIterations().forEach(x -> x.setProject(project));
 		return projectRepository.save(project);
 	}
 
@@ -62,7 +73,11 @@ public class ProjectServiceImpl implements ProjectService {
 
 	@Override
 	public Project findProjectById(String id) {
-		return projectRepository.findById(id).orElse(null);
+		Optional<Project> project = projectRepository.findById(id);
+		if (project.isEmpty()) {
+			throw new BadRequestException("Project not Found");
+		}
+		return project.get();
 	}
 
 	@Override

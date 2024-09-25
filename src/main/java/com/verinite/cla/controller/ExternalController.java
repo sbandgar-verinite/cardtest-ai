@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.verinite.cla.dto.GherkinFormat;
+import com.verinite.cla.service.ExternalService;
 import com.verinite.cla.service.LlamaAiService;
 import com.verinite.cla.service.RunPlanService;
 import com.verinite.cla.util.PropertiesConfig;
@@ -49,6 +52,9 @@ public class ExternalController {
 
 	@Autowired
 	private PropertiesConfig propsConfig;
+
+	@Autowired
+	private ExternalService externalService;
 
 	@GetMapping("/ai/generate")
 	public ResponseEntity<GherkinFormat> generate(@RequestParam(value = "promptMessage") String promptMessage,
@@ -122,4 +128,12 @@ public class ExternalController {
 		return new File(filePath);
 	}
 
+	@PostMapping("/defect/gen")
+	public ResponseEntity<Object> storeDefect(@RequestBody JsonNode defectDetails) {
+		if (Objects.isNull(defectDetails)) {
+			throw new BadRequestException("Object is null");
+		}
+		externalService.storeDefect(defectDetails);
+		return ResponseEntity.status(HttpStatus.OK).build();
+	}
 }

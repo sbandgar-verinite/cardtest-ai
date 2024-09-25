@@ -3,7 +3,6 @@ package com.verinite.cla.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.ModelAndView;
 
+import com.verinite.cla.dto.RunPlanDto;
 import com.verinite.cla.dto.StatusDto;
 import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.service.RunPlanService;
@@ -55,10 +54,15 @@ public class RunPlanController {
 		String response = runPlanService.fetchRunPlan(runPlanId, scenarioType);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
-	
+
 	@GetMapping(value = "/check-status/{id}")
 	public StatusDto checkStatus(@PathVariable("id") String runPlanId) {
 		return runPlanService.checkStatus(runPlanId);
 	}
 
+	@GetMapping(value = "/{id}/iteration/{iteration_id}")
+	public List<RunPlanDto> fetchRunPlanByProjectIdIteration(@PathVariable("id") String projectId,
+			@PathVariable("iteration_id") Integer iterationId) {
+		return runPlanService.findRunPlanByProjectIdAndIterationId(projectId, iterationId);
+	}
 }
