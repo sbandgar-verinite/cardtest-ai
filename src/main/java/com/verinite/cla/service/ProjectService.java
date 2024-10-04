@@ -7,7 +7,7 @@ import com.verinite.cla.entity.Project;
 
 public interface ProjectService {
 
-	public Project addProject(Project project);
+	public Project addProject(ProjectDto projectDto);
 
 	public Project updateProject(ProjectDto project);
 

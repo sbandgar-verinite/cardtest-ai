@@ -9,4 +9,6 @@ import com.verinite.cla.entity.RunPlan;
 public interface RunPlanRepository extends JpaRepository<RunPlan, String> {
 
 	List<RunPlan> getAllRunPlanByProjectId(String featureCode);
+
+	List<RunPlan> findByProjectId(String projectId);
 }

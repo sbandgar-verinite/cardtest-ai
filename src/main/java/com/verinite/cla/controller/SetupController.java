@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.verinite.cla.dto.RunPlanDto;
 import com.verinite.cla.dto.StatusDto;
+import com.verinite.cla.entity.Project;
+import com.verinite.cla.service.ProjectService;
 import com.verinite.cla.service.RunPlanService;
 import com.verinite.cla.service.SetupService;
 import com.verinite.commons.dto.StatusResponse;
@@ -32,6 +34,9 @@ public class SetupController {
 
 	@Autowired
 	private RunPlanService runPlanService;
+
+	@Autowired
+	private ProjectService projectService;
 
 //	@RequestMapping(value = "/tenants", method = RequestMethod.POST)
 //	public String setupNewTenant(TenantDto tenant) {
@@ -59,7 +64,9 @@ public class SetupController {
 
 	@PostMapping(value = "/projects/{projectId}/runplans")
 	public StatusResponse createRunPLan(@PathVariable String projectId) throws ParseException {
-		return setupService.createRunPlanForProject(projectId);
+//		return setupService.createRunPlanForProject(projectId);
+		Project project = projectService.findProjectById(projectId);
+		return setupService.createRunPlanForProject(project);
 	}
 
 	@GetMapping(value = "/projects/{projectId}/runplans")

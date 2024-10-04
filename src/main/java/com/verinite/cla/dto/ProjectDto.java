@@ -3,6 +3,8 @@ package com.verinite.cla.dto;
 import java.util.List;
 import java.util.Map;
 
+import com.verinite.cla.entity.Iteration;
+
 
 public class ProjectDto {
 
@@ -12,12 +14,10 @@ public class ProjectDto {
 	private List<String> features;
 	private Long startDate;
 	private Boolean batchJob;
-//	private List<Integer> validBillingCycles;
-//	private String billingCycleSelectionCriteria;
-//	private int dueDays;
+	private Boolean isFlowAuto;
+	private List<Iteration> iterations;
 	private Map<String, String> attributes;
-
-
+		
 	public ProjectDto(String name, String tenantId, List<String> features, Long startDate,
 			List<Integer> validBillingCycles, String billingCycleSelectionCriteria, int dueDays
 			, Map<String, String> attributes
@@ -58,24 +58,6 @@ public class ProjectDto {
 	public void setStartDate(Long startDate) {
 		this.startDate = startDate;
 	}
-//	public List<Integer> getValidBillingCycles() {
-//		return validBillingCycles;
-//	}
-//	public void setValidBillingCycles(List<Integer> validBillingCycles) {
-//		this.validBillingCycles = validBillingCycles;
-//	}
-//	public String getBillingCycleSelectionCriteria() {
-//		return billingCycleSelectionCriteria;
-//	}
-//	public void setBillingCycleSelectionCriteria(String billingCycleSelectionCriteria) {
-//		this.billingCycleSelectionCriteria = billingCycleSelectionCriteria;
-//	}
-//	public int getDueDays() {
-//		return dueDays;
-//	}
-//	public void setDueDays(int dueDays) {
-//		this.dueDays = dueDays;
-//	}
 	public Map<String, String> getAttributes() {
 		return attributes;
 	}
@@ -93,5 +75,17 @@ public class ProjectDto {
 	}
 	public void setBatchJob(Boolean batchJob) {
 		this.batchJob = batchJob;
+	}
+	public Boolean getIsFlowAuto() {
+		return isFlowAuto;
+	}
+	public void setIsFlowAuto(Boolean isFlowAuto) {
+		this.isFlowAuto = isFlowAuto;
+	}
+	public List<Iteration> getIterations() {
+		return iterations;
+	}
+	public void setIterations(List<Iteration> iterations) {
+		this.iterations = iterations;
 	}
 }

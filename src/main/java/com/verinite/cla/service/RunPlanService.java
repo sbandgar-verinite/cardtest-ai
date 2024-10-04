@@ -24,4 +24,6 @@ public interface RunPlanService {
 	public void updateStatus(String runPlanId, String status, String url, String type);
 
 	public StatusDto checkStatus(String runPlanId);
+
+	public List<RunPlanDto> findRunPlanByProjectIdAndIterationId(String projectId, Integer iterationId);
 }

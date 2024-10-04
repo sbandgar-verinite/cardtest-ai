@@ -31,6 +31,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,6 +53,7 @@ import com.verinite.cla.dto.CamundaResponse;
 import com.verinite.cla.dto.ProjectDto;
 import com.verinite.cla.dto.StatusDto;
 import com.verinite.cla.entity.Feature;
+import com.verinite.cla.entity.Iteration;
 import com.verinite.cla.entity.Project;
 import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.entity.Scenario;
@@ -150,161 +152,89 @@ public class SetupService {
 //		return tenantService.findAllTenant();
 //	}
 
-	public void addNewProject(ProjectDto projectDto) throws ParseException {
-		Project project = new Project();
-		project.setName(projectDto.getName());
-		project.setTenantId(projectDto.getTenantId());
-		if (projectDto.getStartDate() != null) {
-			project.setStartDate(projectDto.getStartDate());
-		}
-//		project.setValidBillingCycles(projectDto.getValidBillingCycles());
-		project.setFeatures(projectDto.getFeatures());
-//		project.setBillingCycleSelectionCriteria(projectDto.getBillingCycleSelectionCriteria());
-//		project.setDueDays(projectDto.getDueDays());
-		project.setAttributes(projectDto.getAttributes());
+//	public void addNewProject(ProjectDto projectDto) throws ParseException {
+//		Project project = new Project();
+//		project.setName(projectDto.getName());
+//		project.setTenantId(projectDto.getTenantId());
+//		if (projectDto.getStartDate() != null) {
+//			project.setStartDate(projectDto.getStartDate());
+//		}
+////		project.setValidBillingCycles(projectDto.getValidBillingCycles());
+//		project.setFeatures(projectDto.getFeatures());
+////		project.setBillingCycleSelectionCriteria(projectDto.getBillingCycleSelectionCriteria());
+////		project.setDueDays(projectDto.getDueDays());
+//		project.setAttributes(projectDto.getAttributes());
+//
+//		project = projectService.addProject(project);
+//
+//	}
 
-		project = projectService.addProject(project);
-
-	}
-
-	public StatusResponse createRunPlanForProject(String projectId) throws ParseException {
-		Project project = new Project();
-		project = projectService.findProjectById(projectId);
+	public StatusResponse createRunPlanForProject(Project project)
+			throws ParseException {
+//		Project project = new Project();
+//		project = projectService.findProjectById(project);
 		Optional<Config> runConf = configRepo.findByKeyName("RUN_CONFIG");
 		Feature feature = new Feature();
 
-		Multimap<Date, Map<String, RunScenario>> listOfRunScenarios = LinkedHashMultimap.create();
-
-//		Date runStartDate = project.getStartDate();
-//		Calendar runCalendar = Calendar.getInstance();
-//		runCalendar.setTime(runStartDate);
-//		DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-//		String nextStatementDateSt = df.format(runStartDate);
-
-//		int daysFromRunStart = 0;
-//		int selectedBC = 0;
-//		Date nextStatementDate = null;
-//		Date nextDueDate = null;
-
-//		for (Integer billingCycle : project.getValidBillingCycles()) {
-//			String formattedBC = String.format("%02d", billingCycle);
-//			nextStatementDateSt = formattedBC + nextStatementDateSt.substring(2);
-//			try {
-//				Date dateForBC = new Date(df.parse(nextStatementDateSt).getTime());
-//				if (dateForBC.before(runStartDate)) {
-//					Calendar bcCalendar = Calendar.getInstance();
-//					bcCalendar.setTime(dateForBC);
-//					bcCalendar.add(Calendar.MONTH, 1);
-//				}
-//
-//				int daysTillStatement = dateService.numberOfDays(runStartDate, dateForBC);
-//				if (project.getBillingCycleSelectionCriteria().equals("FARTHEST")
-//						& daysFromRunStart < daysTillStatement) {
-//					daysFromRunStart = daysTillStatement;
-//					nextStatementDate = dateForBC;
-//					selectedBC = billingCycle;
-//
-//					Calendar dueDateCalendar = Calendar.getInstance();
-//					dueDateCalendar.setTime(nextStatementDate);
-//					dueDateCalendar.add(Calendar.DATE, project.getDueDays());
-//					nextDueDate = new Date(dueDateCalendar.getTime().getTime());
-//				}
-//
-//			} catch (ParseException e) {
-//				e.printStackTrace();
-//			}
-//		}
-
 		Long startDate = project.getStartDate();
-		for (String featureCode : project.getFeatures()) {
 
-			feature = featureService.findFeatureByCode(featureCode);
+		for (Iteration iteration : project.getIterations()) {
+			Multimap<Date, Map<String, RunScenario>> listOfRunScenarios = LinkedHashMultimap.create();
+			for (String featureCode : iteration.getFeatures()) {
+				feature = featureService.findFeatureByCode(featureCode);
+				List<RunConfig> runConfigs = feature.getRunConfigs();
+				for (RunConfig runConfig : runConfigs) {
+					RunScenario preRunScenario = new RunScenario();
+					preRunScenario.setFeatureCode(feature.getCode());
 
-			List<RunConfig> runConfigs = feature.getRunConfigs();
-
-			for (RunConfig runConfig : runConfigs) {
-				RunScenario preRunScenario = new RunScenario();
-				preRunScenario.setFeatureCode(feature.getCode());
-
-				RunScenario postRunScenario = new RunScenario();
-				postRunScenario.setFeatureCode(feature.getCode());
-				Map<String, RunScenario> featureRunScenario = new HashMap<>();
+					RunScenario postRunScenario = new RunScenario();
+					postRunScenario.setFeatureCode(feature.getCode());
+					Map<String, RunScenario> featureRunScenario = new HashMap<>();
 
 //				if (runConfig.getRunType().equals("Normal")) {
-				JsonNode node = calculateRunTime(runConfig.getRunType(), runConf.get());
-				Date newDate = calculateDate(startDate.toString(), node);
+					JsonNode node = calculateRunTime(runConfig.getRunType(), runConf.get());
+					Date newDate = calculateDate(startDate.toString(), node);
 //					runCalendar.add(Calendar.DATE, (runConfig.getRunNumber().intValue() - 1));
 //				}
-
-//				if (runConfig.getRunType().equals("Statement")) {
-//					if (nextStatementDate.after(runCalendar.getTime())) {
-//						runCalendar.setTime(nextStatementDate);
-//					} else {
-//						runCalendar.setTime(nextStatementDate);
-//						runCalendar.add(Calendar.MONTH, 1);
-//						nextStatementDate = new Date(runCalendar.getTime().getTime());
-//					}
-//				}
-
-//				if (runConfig.getRunType().equals("Due")) {
-//					if (nextDueDate.after(runCalendar.getTime())) {
-//						runCalendar.setTime(nextDueDate);
-//					} else {
-//						runCalendar.setTime(nextStatementDate);
-////						runCalendar.add(Calendar.DATE, project.getDueDays());
-//						nextDueDate = new Date(runCalendar.getTime().getTime());
-//					}
-//				}
-				startDate = newDate.toInstant().toEpochMilli();
-				preRunScenario.setScenarios(runConfig.getPreRunScripts());
-				featureRunScenario.put("PrerunScenarios", preRunScenario);
-				postRunScenario.setScenarios(runConfig.getPostRunScripts());
-				featureRunScenario.put("PostrunScenarios", postRunScenario);
+					startDate = newDate.toInstant().toEpochMilli();
+					preRunScenario.setScenarios(runConfig.getPreRunScripts());
+					featureRunScenario.put("PrerunScenarios", preRunScenario);
+					postRunScenario.setScenarios(runConfig.getPostRunScripts());
+					featureRunScenario.put("PostrunScenarios", postRunScenario);
 //				Date date = new Date(runCalendar.getTime().getTime());
 //				startDate = new Date(date.getTime());
-				listOfRunScenarios.put(newDate, featureRunScenario);
+					listOfRunScenarios.put(newDate, featureRunScenario);
+				}
 			}
 
-//			runStartDate = project.getStartDate();
-//			runCalendar.setTime(runStartDate);
-//			String formattedBC = String.format("%02d", selectedBC);
-//			nextStatementDateSt = formattedBC + nextStatementDateSt.substring(2);
-//			nextStatementDate = new Date(df.parse(nextStatementDateSt).getTime());
+			int runCounter = 0;
 
-//			if (nextStatementDate.before(runStartDate)) {
-//				Calendar nextStmtCalendar = Calendar.getInstance();
-//				nextStmtCalendar.setTime(nextStatementDate);
-//				nextStmtCalendar.add(Calendar.MONTH, 1);
-//			}
+			for (Date runDate : listOfRunScenarios.keySet()) {
+				RunPlan runPlan = new RunPlan();
+				runPlan.setProjectId(project.getId());
+				runPlan.setRunDate(runDate.toInstant().toEpochMilli());
+				runCounter++;
+				runPlan.setSequenceNumber(runCounter);
+				runPlan.setDescription("Run Number: #" + runCounter);
+//				runPlan.setBillingCycleConsidered(selectedBC);
 
-		}
-		int runCounter = 0;
+				Collection<Map<String, RunScenario>> runScenarios = listOfRunScenarios.get(runDate);
+				List<RunScenario> prerunScenarios = new ArrayList<>();
+				List<RunScenario> postrunScenarios = new ArrayList<>();
 
-		for (Date runDate : listOfRunScenarios.keySet()) {
-			RunPlan runPlan = new RunPlan();
-			runPlan.setProjectId(project.getId());
-			runPlan.setRunDate(runDate.toInstant().toEpochMilli());
-			runCounter++;
-			runPlan.setSequenceNumber(runCounter);
-			runPlan.setDescription("Run Number: #" + runCounter);
-//			runPlan.setBillingCycleConsidered(selectedBC);
+				for (Map<String, RunScenario> runScenario : runScenarios) {
+					prerunScenarios.add(runScenario.get("PrerunScenarios"));
+					postrunScenarios.add(runScenario.get("PostrunScenarios"));
+				}
 
-			Collection<Map<String, RunScenario>> runScenarios = listOfRunScenarios.get(runDate);
-			List<RunScenario> prerunScenarios = new ArrayList<>();
-			List<RunScenario> postrunScenarios = new ArrayList<>();
-
-			for (Map<String, RunScenario> runScenario : runScenarios) {
-				prerunScenarios.add(runScenario.get("PrerunScenarios"));
-				postrunScenarios.add(runScenario.get("PostrunScenarios"));
-
+				runPlan.setPreRunScripts(prerunScenarios);
+				runPlan.setPostRunScripts(postrunScenarios);
+				runPlan.setItnSeq(iteration.getSequence());
+				runPlan.setStatus(Status.CREATED.getStatus());
+				runPlanService.addRunPlan(runPlan);
 			}
-
-			runPlan.setPreRunScripts(prerunScenarios);
-			runPlan.setPostRunScripts(postrunScenarios);
-
-			runPlan.setStatus(Status.CREATED.getStatus());
-			runPlanService.addRunPlan(runPlan);
 		}
+
 		return new StatusResponse("Success", HttpStatus.OK.value(), "RunPlans Created Successfully");
 	}
 
@@ -762,7 +692,15 @@ public class SetupService {
 			throw new BadRequestException("Run Plan Not Found");
 		if (type == null)
 			throw new BadRequestException("Type Not Specified");
+		Project project = projectService.findProjectById(runPlan.getProjectId());
+		if (project.getIsFlowAuto()) {
+			coreExecutionAsync(runPlan, type);
+			return runPlanService.checkStatus(runPlanId);
+		} else
+			return coreExecution(runPlan, type);
+	}
 
+	private StatusDto coreExecution(RunPlan runPlan, String type) throws InterruptedException {
 		CamundaRequest request = new CamundaRequest();
 //		request.setProjectId(runPlan.getProjectId());
 //		request.setRunPlanId(runPlan.getId());
@@ -771,18 +709,40 @@ public class SetupService {
 		StatusDto statusDto = new StatusDto();
 		if (type.equalsIgnoreCase(Constants.PRE_RUN_PLAN)) {
 			response = startCamundaWorkflow(request, runPlan);
-			statusDto = buildJenkinsJob(runPlanId, type);
+			statusDto = buildJenkinsJob(runPlan.getId(), type);
 			runPlan.setInstanceId(response.getProcessInstanceKey());
 			runPlan.setPreRunTaskId(response.getNextTask().getTaskId());
 			runPlan.setIsPreUploadEnable(Boolean.FALSE);
 		} else if (type.equalsIgnoreCase(Constants.POST_RUN_PLAN)) {
 //			response = completeCamundaTask(request, runPlan.getInstanceId(), runPlan.getPostConfigRunTaskId());
 //			runPlan.setPostRunTaskId(response.getNextTask().getTaskId());
-			statusDto = buildJenkinsJob(runPlanId, type);
+			statusDto = buildJenkinsJob(runPlan.getId(), type);
 			runPlan.setIsPostUploadEnable(Boolean.FALSE);
 		}
 		runPlanService.addRunPlan(runPlan);
 		return statusDto;
+	}
+
+	@Async
+	private void coreExecutionAsync(RunPlan runPlan, String type) throws InterruptedException {
+		CamundaRequest request = new CamundaRequest();
+//		request.setProjectId(runPlan.getProjectId());
+//		request.setRunPlanId(runPlan.getId());
+		request.setType(type.toLowerCase());
+		CamundaResponse response = null;
+		if (type.equalsIgnoreCase(Constants.PRE_RUN_PLAN)) {
+			response = startCamundaWorkflow(request, runPlan);
+			buildJenkinsJob(runPlan.getId(), type);
+			runPlan.setInstanceId(response.getProcessInstanceKey());
+			runPlan.setPreRunTaskId(response.getNextTask().getTaskId());
+			runPlan.setIsPreUploadEnable(Boolean.FALSE);
+		} else if (type.equalsIgnoreCase(Constants.POST_RUN_PLAN)) {
+//			response = completeCamundaTask(request, runPlan.getInstanceId(), runPlan.getPostConfigRunTaskId());
+//			runPlan.setPostRunTaskId(response.getNextTask().getTaskId());
+			buildJenkinsJob(runPlan.getId(), type);
+			runPlan.setIsPostUploadEnable(Boolean.FALSE);
+		}
+		runPlanService.addRunPlan(runPlan);
 	}
 
 	private CamundaResponse startCamundaWorkflow(CamundaRequest camundaRequest, RunPlan runPlan) {

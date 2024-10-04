@@ -3,6 +3,7 @@ package com.verinite.cla.controller;
 import java.text.ParseException;
 import java.util.List;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,10 +35,13 @@ public class ProjectController {
 	@Autowired
 	private RunDataService runDataService;
 
+	@Autowired
+	private ModelMapper mapper;
+	
 	@PostMapping
-	public Project addNewProject(@RequestBody Project project) throws ParseException {
-		project = projectService.addProject(project);
-		setupService.createRunPlanForProject(project.getId());
+	public Project addNewProject(@RequestBody ProjectDto projectDto) throws ParseException {
+		Project project = projectService.addProject(projectDto);
+		setupService.createRunPlanForProject(project);
 		runDataService.generateData(project.getId());
 		return project;
 	}
@@ -48,8 +52,10 @@ public class ProjectController {
 	}
 
 	@GetMapping(value = "/{id}")
-	public Project fetchProjectById(@PathVariable("id") String projectId) {
-		return projectService.findProjectById(projectId);
+	public ProjectDto fetchProjectById(@PathVariable("id") String projectId) {
+		Project project = projectService.findProjectById(projectId);
+		ProjectDto projectDto = mapper.map(project, ProjectDto.class);
+		return projectDto;
 	}
 
 	@PutMapping
