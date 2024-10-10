@@ -33,8 +33,7 @@ public class Iteration {
 	@JoinColumn(name = "project_id")
 	@JsonIgnore
 	private Project project;
-
-	public Iteration() {
+        Iteration() {
 		super();
 	}
 

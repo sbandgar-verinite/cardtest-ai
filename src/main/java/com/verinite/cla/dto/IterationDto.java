@@ -1,15 +1,21 @@
 package com.verinite.cla.dto;
 
 import io.hypersistence.utils.hibernate.type.json.JsonType;
+import io.micrometer.common.lang.Nullable;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import java.util.List;
 
 
 public class IterationDto {
+	
 
+	@JsonIgnore
+	private String id;
 	
 	private Integer sequence;
-	
+
 	@Type(JsonType.class)
 	private List<String> features;
 
@@ -22,6 +28,16 @@ public class IterationDto {
 		super();
 		this.sequence = sequence;
 		this.features = features;
+	}
+	
+	
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public Integer getSequence() {
