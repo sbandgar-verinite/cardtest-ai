@@ -19,6 +19,8 @@ public class IterationDto {
 	@Type(JsonType.class)
 	private List<String> features;
 
+	private List<RunPlanDto> runPlanDtoList ;
+
 	public IterationDto() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -55,7 +57,12 @@ public class IterationDto {
 	public void setFeatures(List<String> features) {
 		this.features = features;
 	}
-	
-	
-	
+
+	public List<RunPlanDto> getRunPlanDtoList() {
+		return runPlanDtoList;
+	}
+
+	public void setRunPlanDtoList(List<RunPlanDto> runPlanDtoList) {
+		this.runPlanDtoList = runPlanDtoList;
+	}
 }

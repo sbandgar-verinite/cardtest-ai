@@ -1,5 +1,24 @@
 package com.verinite.cla.service.impl;
 
+import com.verinite.cla.dto.IterationDto;
+import com.verinite.cla.dto.RunPlanDto;
+import com.verinite.cla.dto.StatusDto;
+import com.verinite.cla.entity.Iteration;
+import com.verinite.cla.entity.Project;
+import com.verinite.cla.entity.RunPlan;
+import com.verinite.cla.repository.IterationRepository;
+import com.verinite.cla.repository.RunPlanRepository;
+import com.verinite.cla.service.ProjectService;
+import com.verinite.cla.service.RunPlanService;
+import com.verinite.cla.service.SetupService;
+import com.verinite.commons.controlleradvice.BadRequestException;
+import com.verinite.commons.dto.StatusResponse;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
@@ -13,19 +32,6 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import com.verinite.cla.dto.RunPlanDto;
-import com.verinite.cla.dto.StatusDto;
-import com.verinite.cla.entity.RunPlan;
-import com.verinite.cla.repository.RunPlanRepository;
-import com.verinite.cla.service.ProjectService;
-import com.verinite.cla.service.RunPlanService;
-import com.verinite.commons.controlleradvice.BadRequestException;
-
 @Service
 public class RunPlanServiceImpl implements RunPlanService {
 
@@ -36,6 +42,13 @@ public class RunPlanServiceImpl implements RunPlanService {
 
 	@Autowired
 	private ModelMapper mapper;
+
+	@Autowired
+	@Lazy
+	SetupService setupService;
+
+	@Autowired
+	IterationRepository iterationRepository;
 
 	@Autowired
 	private ProjectService projService;
@@ -65,13 +78,59 @@ public class RunPlanServiceImpl implements RunPlanService {
 	}
 
 	@Override
-	public List<RunPlanDto> findAllRunPlanByProjectId(String projectId) {
-		List<RunPlan> runPlanList = runPlanRepository.getAllRunPlanByProjectId(projectId);
-		List<RunPlanDto> runPlanDtoList = new ArrayList<>();
-		for (RunPlan runPlan : runPlanList) {
-			runPlanDtoList.add(mapper.map(runPlan, RunPlanDto.class));
+	public List<IterationDto> findAllIterationByProjectId(String projectId) {
+
+		Project project = projService.findProjectById(projectId);
+		List<RunPlan> runPlanByProjectId = new ArrayList<>();
+		try {
+			StatusResponse runPlanForProject = setupService.createRunPlanForProject(project);
+			if (runPlanForProject.getStatus().equalsIgnoreCase("Success")) {
+				runPlanByProjectId = runPlanRepository.getAllRunPlanByProjectId(projectId);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		return runPlanDtoList;
+		List<Iteration> iterationsByProjectId = iterationRepository.findAllByProjectId(projectId);
+		List<IterationDto> iterationDtos = new ArrayList<>();
+
+		for (Iteration iteration : iterationsByProjectId) {
+
+			List<RunPlan> runPlanByIterationId = runPlanRepository.findByItnSeq(iteration.getId());
+			List<RunPlanDto> runPlanDtoList = new ArrayList<>();
+			for (RunPlan runPlan : runPlanByIterationId) {
+				runPlanDtoList.add(mapper.map(runPlan, RunPlanDto.class));
+			}
+			IterationDto iterationDto = mapper.map(iteration, IterationDto.class);
+
+			iterationDto.setRunPlanDtoList(runPlanDtoList);
+			iterationDtos.add(iterationDto);
+		}
+
+		return iterationDtos ;
+
+//		List<RunPlan> runPlanList = runPlanRepository.getAllRunPlanByProjectId(projectId);
+//		List<RunPlanDto> runPlanDtoList = new ArrayList<>();
+//		for (RunPlan runPlan : runPlanList) {
+//			runPlanDtoList.add(mapper.map(runPlan, RunPlanDto.class));
+//		}
+//		return runPlanDtoList;
+
+
+//		List<Iteration> allByProjectId = iterationRepository.findAllByProjectId(projectId);
+//		List<IterationDto> iterationDtos = new ArrayList<>();
+//		if(!allByProjectId.isEmpty()) {
+//			for (Iteration it : allByProjectId) {
+//				iterationDtos.add(mapper.map(it, IterationDto.class));
+//			}
+//		}
+//		else {
+//			throw new BadRequestException("Iterations Not Found");
+//		}
+//
+//
+//
+//		return iterationDtos;
+
 	}
 
 	@Override

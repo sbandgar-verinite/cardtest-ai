@@ -229,7 +229,7 @@ public class SetupService {
 
 				runPlan.setPreRunScripts(prerunScenarios);
 				runPlan.setPostRunScripts(postrunScenarios);
-				runPlan.setItnSeq(iteration.getSequence());
+				runPlan.setItnSeq(iteration.getId());
 				runPlan.setStatus(Status.CREATED.getStatus());
 				runPlanService.addRunPlan(runPlan);
 			}

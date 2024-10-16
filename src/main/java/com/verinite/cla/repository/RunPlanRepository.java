@@ -11,4 +11,6 @@ public interface RunPlanRepository extends JpaRepository<RunPlan, String> {
 	List<RunPlan> getAllRunPlanByProjectId(String featureCode);
 
 	List<RunPlan> findByProjectId(String projectId);
+
+	List<RunPlan> findByItnSeq(String iterationId);
 }
