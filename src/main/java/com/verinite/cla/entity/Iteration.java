@@ -29,11 +29,14 @@ public class Iteration {
 	@Type(JsonType.class)
 	private List<String> features;
 
+	private Long startDate;
+
 	@ManyToOne
 	@JoinColumn(name = "project_id")
 	@JsonIgnore
 	private Project project;
-        Iteration() {
+
+	Iteration() {
 		super();
 	}
 
@@ -75,4 +78,11 @@ public class Iteration {
 		this.project = project;
 	}
 
+	public Long getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(Long startDate) {
+		this.startDate = startDate;
+	}
 }

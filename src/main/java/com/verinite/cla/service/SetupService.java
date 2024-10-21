@@ -175,10 +175,8 @@ public class SetupService {
 //		project = projectService.findProjectById(project);
 		Optional<Config> runConf = configRepo.findByKeyName("RUN_CONFIG");
 		Feature feature = new Feature();
-
-		Long startDate = project.getStartDate();
-
 		for (Iteration iteration : project.getIterations()) {
+			Long startDate = iteration.getStartDate();
 			Multimap<Date, Map<String, RunScenario>> listOfRunScenarios = LinkedHashMultimap.create();
 			for (String featureCode : iteration.getFeatures()) {
 				feature = featureService.findFeatureByCode(featureCode);
