@@ -21,6 +21,8 @@ public class IterationDto {
 
 	private List<RunPlanDto> runPlanDtoList ;
 
+	private Long startDate;
+	
 	public IterationDto() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -65,4 +67,13 @@ public class IterationDto {
 	public void setRunPlanDtoList(List<RunPlanDto> runPlanDtoList) {
 		this.runPlanDtoList = runPlanDtoList;
 	}
+
+	public Long getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(Long startDate) {
+		this.startDate = startDate;
+	}
+
 }
