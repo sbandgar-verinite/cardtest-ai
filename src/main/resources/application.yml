@@ -12,7 +12,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/cla_config?useSSL=false&allowPublicKeyRetrieval=TRUE&createDatabaseIfNotExist=true
     username: root
-    password: root
+    password: Verinite@123
     driverClassName: com.mysql.cj.jdbc.Driver
   ai:
     ollama:
@@ -37,11 +37,11 @@ data:
       
 jenkins:
   job.name: CARDTEST.AI
-  baseUrl: http://192.168.3.195:8080
-  creds: admin:0d9722b0993b43b594727e3a7c73737b #sankha:1155b93dd2fba10d968714ad841c910c59 - sankha
+  baseUrl: http://localhost:8080
+  creds: Deepti:Deepti@2003 #admin:0d9722b0993b43b594727e3a7c73737b #sankha:1155b93dd2fba10d968714ad841c910c59 - sankha
   
 host:
-  ip: http://192.168.3.195:8090
+  ip: http://localhost:8090
   
 github:
   api:
@@ -62,7 +62,7 @@ github:
 
 camunda:
   host:
-    ip: http://192.168.3.104:9093
+    ip: http://192.168.3.131:9093
   bpmn:
     process:
       id: runplan

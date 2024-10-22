@@ -1,24 +1,5 @@
 package com.verinite.cla.service.impl;
 
-import com.verinite.cla.dto.IterationDto;
-import com.verinite.cla.dto.RunPlanDto;
-import com.verinite.cla.dto.StatusDto;
-import com.verinite.cla.entity.Iteration;
-import com.verinite.cla.entity.Project;
-import com.verinite.cla.entity.RunPlan;
-import com.verinite.cla.repository.IterationRepository;
-import com.verinite.cla.repository.RunPlanRepository;
-import com.verinite.cla.service.ProjectService;
-import com.verinite.cla.service.RunPlanService;
-import com.verinite.cla.service.SetupService;
-import com.verinite.commons.controlleradvice.BadRequestException;
-import com.verinite.commons.dto.StatusResponse;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
@@ -26,11 +7,30 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.verinite.cla.dto.IterationDto;
+import com.verinite.cla.dto.RunPlanDto;
+import com.verinite.cla.dto.StatusDto;
+import com.verinite.cla.entity.Iteration;
+import com.verinite.cla.entity.RunPlan;
+import com.verinite.cla.repository.IterationRepository;
+import com.verinite.cla.repository.RunPlanRepository;
+import com.verinite.cla.service.ProjectService;
+import com.verinite.cla.service.RunPlanService;
+import com.verinite.cla.service.SetupService;
+import com.verinite.commons.controlleradvice.BadRequestException;
 
 @Service
 public class RunPlanServiceImpl implements RunPlanService {
@@ -91,6 +91,8 @@ public class RunPlanServiceImpl implements RunPlanService {
 				runPlanDtoList.add(mapper.map(runPlan, RunPlanDto.class));
 			}
 			IterationDto iterationDto = mapper.map(iteration, IterationDto.class);
+			
+			runPlanDtoList.sort(Comparator.comparing(RunPlanDto::getSequenceNumber));
 
 			iterationDto.setRunPlanDtoList(runPlanDtoList);
 			iterationDtos.add(iterationDto);

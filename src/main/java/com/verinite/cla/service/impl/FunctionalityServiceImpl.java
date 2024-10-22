@@ -1,5 +1,6 @@
 package com.verinite.cla.service.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.verinite.cla.dto.FunctionalityDto;
 import com.verinite.cla.entity.Feature;
@@ -44,14 +46,26 @@ public class FunctionalityServiceImpl implements FunctionalityService {
 
 	@Override
 	public void addFunctionality(FunctionalityDto funcDto) {
-		Functionality func = mapper.map(funcDto, Functionality.class);
+		//Functionality func = mapper.map(funcDto, Functionality.class);
+		ObjectMapper mapper = new ObjectMapper();
+
+		try {
+	        String jsonString = "{ \"scenario\": { \"given\": [\"precondition1\"], \"when\": [\"event1\"], \"then\": [\"outcome1\"] }, \"feature_name\": \"My Feature\", \"functionality_name\": \"My Functionality\", \"steps\": \"step1\", \"test_case_description\": \"Description\", \"tags\": \"tag1\" }";
+
+	        JsonNode details = mapper.readTree(jsonString);
+	        
+	        add(details);
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	
 //		func.setFeatureId(funcDto.getFeatureId());
 //		func.setFeatureName(funcDto.getFeatureName());
 //		func.setFunctionality(funcDto.getFunctionality());
 //		func.setSteps(funcDto.getSteps());
 //		func.setTestCaseDescription(funcDto.getTestCaseDescription());
 //		func.setTags(funcDto.getTags());
-		functionalityRepo.save(func);
+		//functionalityRepo.save(func);
 //		return new FunctionalityDto(func.getId(), func.getName(), func.getTags(), func.getFeatureName());
 	}
 

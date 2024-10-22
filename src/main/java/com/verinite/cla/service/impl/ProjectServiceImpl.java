@@ -116,7 +116,7 @@ public class ProjectServiceImpl implements ProjectService {
 			for (IterationDto iterationDto : projectDto.getIterations()) {
 				if (iterationDto.getId() == null) {
 					Iteration it = modelMapper.map(iterationDto, Iteration.class);
-					it.setGenerated(Boolean.FALSE);
+					it.setIsGenerated(Boolean.FALSE);
 					it.setProject(proj);
 					proj.getIterations().add(it);
 					continue;
@@ -124,7 +124,7 @@ public class ProjectServiceImpl implements ProjectService {
 				else {
 					for (Iteration existingIteration : proj.getIterations()) {
 						if (iterationDto.getId().equalsIgnoreCase(existingIteration.getId())
-								&& Boolean.FALSE.equals(existingIteration.getGenerated())) {
+								&& Boolean.FALSE.equals(existingIteration.getIsGenerated())) {
 							existingIteration.setFeatures(iterationDto.getFeatures());
 							existingIteration.setSequence(iterationDto.getSequence());
 						}
@@ -135,7 +135,7 @@ public class ProjectServiceImpl implements ProjectService {
 			List<Iteration> iterationList = new ArrayList<>();
 			for (IterationDto iteration : iterationListNew) {
 				Iteration it = modelMapper.map(iteration, Iteration.class);
-				it.setGenerated(Boolean.FALSE);
+				it.setIsGenerated(Boolean.FALSE);
 				it.setProject(proj);
 				iterationList.add(it);
 			}
