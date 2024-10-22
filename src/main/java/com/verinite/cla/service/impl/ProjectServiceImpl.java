@@ -109,43 +109,31 @@ public class ProjectServiceImpl implements ProjectService {
 //			proj.setIterations(iterationList);
 //		}
 //		
-		
-		List<IterationDto> iterationListNew = projectDto.getIterations();
-		List<Iteration> existingIterartionList = proj.getIterations();
-		List<Iteration> iterationList = new ArrayList<>();
 
-		if (!existingIterartionList.isEmpty()) {
-			for (IterationDto iteration : iterationListNew) {
-				if(iteration.getId() == null)
-				{
-					Iteration it = modelMapper.map(iteration, Iteration.class);
+		List<IterationDto> iterationListNew = projectDto.getIterations();
+		
+		if (!proj.getIterations().isEmpty()) {
+			for (IterationDto iterationDto : projectDto.getIterations()) {
+				if (iterationDto.getId() == null) {
+					Iteration it = modelMapper.map(iterationDto, Iteration.class);
 					it.setGenerated(Boolean.FALSE);
 					it.setProject(proj);
-					iterationList.add(it);
+					proj.getIterations().add(it);
 					continue;
 				}
-				for(Iteration existingIteration : existingIterartionList)
-				{
-					existingIteration.setGenerated(Boolean.TRUE);
-					if(iteration.getId().equalsIgnoreCase(existingIteration.getId()))
-					{
-						iteration.setGeneraeted(Boolean.TRUE);
-						break;
+				else {
+					for (Iteration existingIteration : proj.getIterations()) {
+						if (iterationDto.getId().equalsIgnoreCase(existingIteration.getId())
+								&& Boolean.FALSE.equals(existingIteration.getGenerated())) {
+							existingIteration.setFeatures(iterationDto.getFeatures());
+							existingIteration.setSequence(iterationDto.getSequence());
+						}
 					}
 				}
-				Iteration existingIteration = iterationRepo.getById(iteration.getId());
-				existingIteration.setProject(proj);
-				existingIteration.setFeatures(iteration.getFeatures());
-				existingIteration.setGenerated(Boolean.TRUE);
-				existingIteration.setSequence(iteration.getSequence());
-				iterationList.add(existingIteration);
 			}
-			proj.setIterations(iterationList);
-		}
-		else
-		{	
-			for(IterationDto iteration : iterationListNew)
-			{
+		} else {
+			List<Iteration> iterationList = new ArrayList<>();
+			for (IterationDto iteration : iterationListNew) {
 				Iteration it = modelMapper.map(iteration, Iteration.class);
 				it.setGenerated(Boolean.FALSE);
 				it.setProject(proj);
@@ -153,8 +141,7 @@ public class ProjectServiceImpl implements ProjectService {
 			}
 			proj.setIterations(iterationList);
 		}
-		projectRepository.save(proj);
-		proj.setIterations(iterationList);
+		proj = projectRepository.save(proj);
 
 		try {
 			StatusResponse runPlanForProject = setupService.createRunPlanForProject(proj);
@@ -169,13 +156,9 @@ public class ProjectServiceImpl implements ProjectService {
 //			List<Integer> sequencesToRemove = projectDto.getRemoveIterationSequences();
 //			proj.setIterations(proj.setIteration);
 //		}
-		
-		
 
 		return findProjectById(id);
 	}
-	
-	
 
 	@Override
 	public Project findProjectById(String id) {

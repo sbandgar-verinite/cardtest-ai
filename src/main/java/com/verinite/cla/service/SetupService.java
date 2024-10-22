@@ -59,6 +59,7 @@ import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.entity.Scenario;
 import com.verinite.cla.model.RunConfig;
 import com.verinite.cla.model.RunScenario;
+import com.verinite.cla.repository.IterationRepository;
 import com.verinite.cla.service.impl.FileGenerationService;
 import com.verinite.cla.util.PropertiesConfig;
 import com.verinite.cla.util.RunPlanStatus;
@@ -126,6 +127,9 @@ public class SetupService {
 	@Autowired
 	private ResourceLoader resourceLoader;
 
+	@Autowired
+	private IterationRepository iterRepo;
+
 	public JsonNode readFromJson() {
 		Resource resource = resourceLoader.getResource("classpath:data.json");
 		try {
@@ -176,12 +180,11 @@ public class SetupService {
 		Optional<Config> runConf = configRepo.findByKeyName("RUN_CONFIG");
 		Feature feature = new Feature();
 		for (Iteration iteration : project.getIterations()) {
-			Long startDate = iteration.getStartDate();
-			Multimap<Date, Map<String, RunScenario>> listOfRunScenarios = LinkedHashMultimap.create();
-			if(iteration.getGenerated())
-			{
+			if (iteration.getGenerated()) {
 				continue;
 			}
+			Long startDate = iteration.getStartDate();
+			Multimap<Date, Map<String, RunScenario>> listOfRunScenarios = LinkedHashMultimap.create();
 			for (String featureCode : iteration.getFeatures()) {
 				feature = featureService.findFeatureByCode(featureCode);
 				List<RunConfig> runConfigs = feature.getRunConfigs();
@@ -235,8 +238,11 @@ public class SetupService {
 				runPlan.setStatus(Status.CREATED.getStatus());
 				runPlanService.addRunPlan(runPlan);
 			}
+			
+			iteration.setGenerated(Boolean.TRUE);
+			
 		}
-
+		iterRepo.saveAll(project.getIterations());
 		return new StatusResponse("Success", HttpStatus.OK.value(), "RunPlans Created Successfully");
 	}
 

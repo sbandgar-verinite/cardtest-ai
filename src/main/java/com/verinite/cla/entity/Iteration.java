@@ -88,11 +88,11 @@ public class Iteration {
 		this.startDate = startDate;
 	}
 
-	public Boolean getGenerated() {
+	public Boolean getIsGenerated() {
 		return isGenerated;
 	}
 
-	public void setGenerated(Boolean generated) {
-		isGenerated = generated;
+	public void setIsGenerated(Boolean isGenerated) {
+		this.isGenerated = isGenerated;
 	}
 }

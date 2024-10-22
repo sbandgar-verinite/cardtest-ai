@@ -24,7 +24,7 @@ public class IterationDto {
 
     private Long startDate;
 
-    private Boolean isGeneraeted;
+    private Boolean isGenerated;
 
     public IterationDto() {
         super();
@@ -78,11 +78,11 @@ public class IterationDto {
         this.startDate = startDate;
     }
 
-    public Boolean getGeneraeted() {
-        return isGeneraeted;
-    }
+	public Boolean getIsGenerated() {
+		return isGenerated;
+	}
 
-    public void setGeneraeted(Boolean generaeted) {
-        isGeneraeted = generaeted;
-    }
+	public void setIsGenerated(Boolean isGenerated) {
+		this.isGenerated = isGenerated;
+	}
 }
