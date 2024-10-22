@@ -36,6 +36,8 @@ public class Iteration {
 	@JsonIgnore
 	private Project project;
 
+	private Boolean isGenerated;
+
 	Iteration() {
 		super();
 	}
@@ -84,5 +86,13 @@ public class Iteration {
 
 	public void setStartDate(Long startDate) {
 		this.startDate = startDate;
+	}
+
+	public Boolean getGenerated() {
+		return isGenerated;
+	}
+
+	public void setGenerated(Boolean generated) {
+		isGenerated = generated;
 	}
 }

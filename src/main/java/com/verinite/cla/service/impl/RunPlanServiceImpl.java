@@ -80,16 +80,6 @@ public class RunPlanServiceImpl implements RunPlanService {
 	@Override
 	public List<IterationDto> findAllIterationByProjectId(String projectId) {
 
-		Project project = projService.findProjectById(projectId);
-		List<RunPlan> runPlanByProjectId = new ArrayList<>();
-		try {
-			StatusResponse runPlanForProject = setupService.createRunPlanForProject(project);
-			if (runPlanForProject.getStatus().equalsIgnoreCase("Success")) {
-				runPlanByProjectId = runPlanRepository.getAllRunPlanByProjectId(projectId);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 		List<Iteration> iterationsByProjectId = iterationRepository.findAllByProjectId(projectId);
 		List<IterationDto> iterationDtos = new ArrayList<>();
 

@@ -178,6 +178,10 @@ public class SetupService {
 		for (Iteration iteration : project.getIterations()) {
 			Long startDate = iteration.getStartDate();
 			Multimap<Date, Map<String, RunScenario>> listOfRunScenarios = LinkedHashMultimap.create();
+			if(iteration.getGenerated())
+			{
+				continue;
+			}
 			for (String featureCode : iteration.getFeatures()) {
 				feature = featureService.findFeatureByCode(featureCode);
 				List<RunConfig> runConfigs = feature.getRunConfigs();
