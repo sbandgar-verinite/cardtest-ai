@@ -33,15 +33,15 @@ spring:
 data:
   gen:
     service:
-      baseUrl: http://localhost:8089
+      baseUrl: http://192.168.3.40:8089
       
 jenkins:
   job.name: CARDTEST.AI
-  baseUrl: http://localhost:8080
+  baseUrl: http://192.168.3.40:8080
   creds: Deepti:Deepti@2003 #admin:0d9722b0993b43b594727e3a7c73737b #sankha:1155b93dd2fba10d968714ad841c910c59 - sankha
   
 host:
-  ip: http://localhost:8090
+  ip: http://192.168.3.40:8090
   
 github:
   api:
@@ -49,7 +49,7 @@ github:
       url: https://api.github.com/repos/sbandgar-verinite/automation-scripts/contents/src/test/resources/features
       stepDefinitionUrl: https://api.github.com/repos/sbandgar-verinite/automation-scripts/contents/src/test/java/testCases/stepdefinitions
       branch: main
-      auth.token: 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  #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 - sankha
+      auth.token: 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  #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 - sankha
   commit:
     name: Sumeet Bandgar
     email: sumeet.bandgar@verinite.com
@@ -62,7 +62,7 @@ github:
 
 camunda:
   host:
-    ip: http://192.168.3.131:9093
+    ip: http://192.168.3.20:9093
   bpmn:
     process:
       id: runplan

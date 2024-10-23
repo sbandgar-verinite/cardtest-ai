@@ -98,7 +98,7 @@ public class ExternalController {
                    }
                     
 
-                    String directoryPath = "static-files/" + runPlanId + "/runplanId/" + type + "/" + nextSequence + "/";  
+                    String directoryPath = "static-files/" + runPlanId + "/" + type + "/" + nextSequence + "/";  
                     createDirectory(directoryPath);  
 
 //                    String zipFileName = fileName.substring(0, fileName.lastIndexOf('.')); 
@@ -121,7 +121,7 @@ public class ExternalController {
                     history.setSequence(nextSequence);
                     history.setRunPlanId(runPlanId);
                     history.setType(type);
-                    history.setUrl(propsConfig.getHostUrl() + "/api/v1/cardtest/" + fileName + "/serenity/index.html");
+                    history.setUrl(propsConfig.getHostUrl() + "/api/v1/cardtest/" + directoryPath + "serenity/index.html");
                     history.setDate(LocalDate.now());
                     
                     reportHistoryRepository.save(history);
@@ -130,7 +130,7 @@ public class ExternalController {
                     ZipUtil.unzip(getFile(directoryPath + "/" + fileName + ".zip" ), destDir); 
 
                     runPlanService.updateStatus(runPlanId, RunPlanStatus.BUILD_SUCCESS.getStatus(),
-                        propsConfig.getHostUrl() + "/api/v1/cardtest/" + fileName + "/serenity/index.html", type);
+                        propsConfig.getHostUrl() + "/api/v1/cardtest/" + directoryPath + "serenity/index.html", type);
                 } else {
                     runPlanService.updateStatus(runPlanId, RunPlanStatus.BUILD_FAILED.getStatus(), null, type);
                 }

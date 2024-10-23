@@ -50,7 +50,7 @@ public class FunctionalityServiceImpl implements FunctionalityService {
 		ObjectMapper mapper = new ObjectMapper();
 
 		try {
-	        String jsonString = "{ \"scenario\": { \"given\": [\"precondition1\"], \"when\": [\"event1\"], \"then\": [\"outcome1\"] }, \"feature_name\": \"My Feature\", \"functionality_name\": \"My Functionality\", \"steps\": \"step1\", \"test_case_description\": \"Description\", \"tags\": \"tag1\" }";
+	        String jsonString = "{ \"scenario\": { \"given\": [\"precondition1\"], \"when\": [\"event1\"], \"then\": [\"outcome1\"] }, \"feature_name\": \"My Feature\", \"functionality_name\": \"My Functionality\", \"steps\": \"step1\", \"test_case_description\": \"Description\", \"FN\":\" case id with date\",\"tags\": \"tag1\" }";
 
 	        JsonNode details = mapper.readTree(jsonString);
 	        
