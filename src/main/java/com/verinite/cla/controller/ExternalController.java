@@ -87,18 +87,17 @@ public class ExternalController {
 
                    //latest sequence from report history - runplanId increment by 1
                    Long nextSequence = reportHistoryRepository.countByRunPlanId(runPlanId);
-                   
-                   if(nextSequence == 0)
-                   {
-                	   nextSequence = 1L ;
-                   }
-                   else
-                   {
-                	   nextSequence++;
-                   }
-                    
+                   nextSequence++;
+//                   if(nextSequence == 0)
+//                   {
+//                	   nextSequence = 1L ;
+//                   }
+//                   else
+//                   {
+//                	   nextSequence++;
+//                   }
 
-                    String directoryPath = "static-files/" + runPlanId + "/runplanId/" + type + "/" + nextSequence + "/";  
+                    String directoryPath = "static-files/" + runPlanId + "/" + type + "/" + nextSequence + "/";  
                     createDirectory(directoryPath);  
 
 //                    String zipFileName = fileName.substring(0, fileName.lastIndexOf('.')); 
@@ -106,7 +105,7 @@ public class ExternalController {
 //                    		+ fileName + ".zip";  
 
                     try (InputStream inputStream = result.getBody().getInputStream();
-                         OutputStream outputStream = new FileOutputStream(directoryPath + "/" + fileName + ".zip")) {
+                         OutputStream outputStream = new FileOutputStream(directoryPath + fileName + ".zip")) {
                         byte[] buffer = new byte[1024];
                         int bytesRead;
                         while ((bytesRead = inputStream.read(buffer)) != -1) {
@@ -121,16 +120,16 @@ public class ExternalController {
                     history.setSequence(nextSequence);
                     history.setRunPlanId(runPlanId);
                     history.setType(type);
-                    history.setUrl(propsConfig.getHostUrl() + "/api/v1/cardtest/" + fileName + "/serenity/index.html");
+                    history.setUrl(propsConfig.getHostUrl() + "/api/v1/cardtest/" + directoryPath + fileName + "/serenity/index.html");
                     history.setDate(LocalDate.now());
                     
                     reportHistoryRepository.save(history);
 
                     File destDir = new File(directoryPath);  
-                    ZipUtil.unzip(getFile(directoryPath + "/" + fileName + ".zip" ), destDir); 
+                    ZipUtil.unzip(getFile(directoryPath + fileName + ".zip" ), destDir); 
 
                     runPlanService.updateStatus(runPlanId, RunPlanStatus.BUILD_SUCCESS.getStatus(),
-                        propsConfig.getHostUrl() + "/api/v1/cardtest/" + fileName + "/serenity/index.html", type);
+                        propsConfig.getHostUrl() + "/api/v1/cardtest/" + directoryPath + fileName + "/serenity/index.html", type);
                 } else {
                     runPlanService.updateStatus(runPlanId, RunPlanStatus.BUILD_FAILED.getStatus(), null, type);
                 }
