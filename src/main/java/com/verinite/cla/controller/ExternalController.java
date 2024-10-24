@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.verinite.cla.dto.ReportHistoryDto;
+import com.verinite.cla.dto.ReportHistoryResponce;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -165,15 +166,28 @@ public class ExternalController {
     }
 
     @GetMapping("/getAllReports/{runplanId}")
-    public List<ReportHistoryDto> getAllReports(@PathVariable("runplanId") String runplanId) {
+    public ReportHistoryResponce getAllReports(@PathVariable("runplanId") String runplanId) {
         List<ReportHistory> allReportsByRunPlanId = reportHistoryRepository.findAllByRunPlanId(runplanId);
         if (!allReportsByRunPlanId.isEmpty()) {
             List<ReportHistoryDto> reports = allReportsByRunPlanId.stream()
-                                            .map(report -> mapper.map(report, ReportHistoryDto.class))
-                                            .collect(Collectors.toList());
-            return reports;
-        }
-        else{
+                    .map(report -> mapper.map(report, ReportHistoryDto.class))
+                    .collect(Collectors.toList());
+
+            List<ReportHistoryDto> preReports = reports.stream()
+                    .filter(report -> report.getType().equalsIgnoreCase("pre"))
+                    .collect(Collectors.toList());
+
+            List<ReportHistoryDto> postReports = reports.stream()
+                    .filter(report -> report.getType().equalsIgnoreCase("post"))
+                    .collect(Collectors.toList());
+
+            ReportHistoryResponce reportHistoryResponce = new ReportHistoryResponce();
+
+            reportHistoryResponce.setPreReports(preReports);
+            reportHistoryResponce.setPostReports(postReports);
+
+            return reportHistoryResponce;
+        } else {
             throw new BadRequestException("Report Not Found For runplaId : " + runplanId);
         }
     }
