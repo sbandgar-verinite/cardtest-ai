@@ -49,7 +49,7 @@ github:
       url: https://api.github.com/repos/sbandgar-verinite/automation-scripts/contents/src/test/resources/features
       stepDefinitionUrl: https://api.github.com/repos/sbandgar-verinite/automation-scripts/contents/src/test/java/testCases/stepdefinitions
       branch: main
-      auth.token: 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  #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 - sankha
+      auth.token: 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  #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 - sankha
   commit:
     name: Sumeet Bandgar
     email: sumeet.bandgar@verinite.com

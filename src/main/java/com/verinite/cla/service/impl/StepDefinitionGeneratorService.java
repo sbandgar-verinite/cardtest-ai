@@ -72,7 +72,7 @@ public class StepDefinitionGeneratorService {
     
     private static void addMethodWithAnnotation(ClassOrInterfaceDeclaration classDeclaration, List<MethodDetails> methodDetails) {
 		for (MethodDetails methodDetail : methodDetails) {
-			addMethodWithAnnotation(classDeclaration, methodDetails);
+			//addMethodWithAnnotation(classDeclaration, methodDetails);
 			MethodDeclaration method = StaticJavaParser.parseMethodDeclaration(methodDetail.getMethodBody());
 			AnnotationExpr annotation = StaticJavaParser.parseAnnotation(
 					methodDetail.getAnnotationName() + "(\"" + methodDetail.getAnnotationValue() + "\")");
@@ -152,7 +152,7 @@ public class StepDefinitionGeneratorService {
 			} else {
 				methodBody.append("    // Add your Selenium code here");
 			}
-			methodBody.append("\n}\n\n\\n");
+			methodBody.append("\n}\n\n\n");
 			return new MethodDetails(annotation, formattedStep, methodBody.toString());
 		}
 		return null;
