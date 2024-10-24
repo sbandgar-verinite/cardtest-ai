@@ -134,7 +134,7 @@ public class ExternalController {
 
                     reportHistoryRepository.save(history);
 
-                    File destDir = new File(directoryPath);
+                    File destDir = new File(directoryPath + fileName);
                     ZipUtil.unzip(getFile(directoryPath + fileName + ".zip"), destDir);
 
                     runPlanService.updateStatus(runPlanId, RunPlanStatus.BUILD_SUCCESS.getStatus(),
