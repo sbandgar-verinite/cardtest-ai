@@ -97,7 +97,7 @@ public class ExternalController {
 //                	   nextSequence++;
 //                   }
 
-                    String directoryPath = "static-files/" + runPlanId + "/" + type + "/" + nextSequence + "/";  
+                    String directoryPath = "static-files/" + runPlanId + "/" + type + "/" + nextSequence + "/";
                     createDirectory(directoryPath);  
 
 //                    String zipFileName = fileName.substring(0, fileName.lastIndexOf('.')); 
@@ -129,7 +129,7 @@ public class ExternalController {
                     ZipUtil.unzip(getFile(directoryPath + fileName + ".zip" ), destDir); 
 
                     runPlanService.updateStatus(runPlanId, RunPlanStatus.BUILD_SUCCESS.getStatus(),
-                        propsConfig.getHostUrl() + "/api/v1/cardtest/" + directoryPath + fileName + "/serenity/index.html", type);
+                    propsConfig.getHostUrl() + "/api/v1/cardtest/" + directoryPath + fileName + "/serenity/index.html", type);
                 } else {
                     runPlanService.updateStatus(runPlanId, RunPlanStatus.BUILD_FAILED.getStatus(), null, type);
                 }
