@@ -45,10 +45,11 @@ public class FunctionalityServiceImpl implements FunctionalityService {
 	private FeatureService featureService;
 
 	@Override
-	public void addFunctionality(FunctionalityDto funcDto) {
+	public void addFunctionality(FunctionalityDto funcDto) 
+{
 		//Functionality func = mapper.map(funcDto, Functionality.class);
 		ObjectMapper mapper = new ObjectMapper();
-
+ 
 		try {
 	        String jsonString = "{ \"scenario\": { \"given\": [\"precondition1\"], \"when\": [\"event1\"], \"then\": [\"outcome1\"] }, \"feature_name\": \"My Feature\", \"functionality_name\": \"My Functionality\", \"steps\": \"step1\", \"test_case_description\": \"Description\", \"FN\":\" case id with date\",\"tags\": \"tag1\" }";
 
@@ -58,6 +59,7 @@ public class FunctionalityServiceImpl implements FunctionalityService {
 	    } catch (IOException e) {
 	        e.printStackTrace();
 	    }
+		//add(details);
 	
 //		func.setFeatureId(funcDto.getFeatureId());
 //		func.setFeatureName(funcDto.getFeatureName());
@@ -121,8 +123,7 @@ public class FunctionalityServiceImpl implements FunctionalityService {
 		if (details == null) {
 			throw new BadRequestException("Request Body looks empty");
 		}
-
-		Feature feature = null;
+		Feature feature = new Feature();
 		if (details.get("scenario") != null) {
 			saveScenario(details);
 			feature = saveFeature(details);
@@ -132,8 +133,8 @@ public class FunctionalityServiceImpl implements FunctionalityService {
 		func.setFeatureId(feature.getId());
 		func.setFeatureName(feature.getCode());
 		func.setFuncName(details.get("functionality_name").asText());
-		func.setSteps(details.get("steps").asText());
 		func.setCaseDescription(details.get("test_case_description").asText());
+        func.setSteps(Arrays.asList(details.get("steps").asText()));
 		func.setCaseId("FN" + new Date().getYear() + (00000 + (functionalityRepo.count() + 1)));
 		func.setTags(Arrays.asList(details.get("tags").asText()));
 		functionalityRepo.save(func);
