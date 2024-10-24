@@ -10,6 +10,7 @@ Feature: Verify user actions on a webpage
     When he enters the value <data> in the field identified by <Element ID>
     When he enters the value <data> in the field named <Element name>
     When he clicks the button identified by <Button ID>
+	  When he clicks the button identified by xpath <Button Xpath>
     When he clicks the button named <Button name>
     When he clicks the element identified by <Element ID>
 

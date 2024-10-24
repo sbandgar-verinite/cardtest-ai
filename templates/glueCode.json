@@ -1,11 +1,12 @@
 {
     "{} is on {} page": "screen.open(user, url);",
-    "he views the value in the field {}": "",
-    "he should be able to view {} in the field": "wait.until(ExpectedConditions.titleContains(data));\nlogger.info(\"Page title contains: {}\", data);\nif (driver != null) {\n    driver.quit();\n}",
-    "he enters the value {} in the field with a path {}": "",
-    "he enters the value {} in the field identified by {}": "",
-    "he enters the value {} in the field named {}": "WebElement searchBox = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name(elementName)));\nsearchBox.clear();\nsearchBox.sendKeys(data);",
-    "he clicks the button identified by {}": "",
-    "he clicks the button named {}": "WebElement searchButton = wait.until(ExpectedConditions.elementToBeClickable(By.name(buttonName)));\nsearchButton.click();\nlogger.info(\"Clicked the button: {}\", buttonName);",
+    "he views the value in the field {}": "screen.view(xPath);",
+    "he should be able to view {} in the field": "screen.view(data);",
+    "he enters the value {} in the field with a path {}": "screen.update(data, \"xpath\", xPath);",
+    "he enters the value {} in the field identified by {}": "screen.update(data, \"id\", elementId);",
+    "he enters the value {} in the field named {}": "screen.update(data, \"name\", elementName);",
+    "he clicks the button identified by {}": "screen.click(\"id\", buttonId);",
+	"he clicks the button identified by xpath {}": "screen.click(\"xpath\", buttonXpath);",
+    "he clicks the button named {}": "screen.click(\"name\", buttonName);",
     "he clicks the element identified by {}": ""
 }
