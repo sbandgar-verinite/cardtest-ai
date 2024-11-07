@@ -1,17 +1,20 @@
 package com.verinite.cla.service.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.verinite.cla.dto.FunctionalityDto;
 import com.verinite.cla.entity.Feature;
@@ -42,15 +45,29 @@ public class FunctionalityServiceImpl implements FunctionalityService {
 	private FeatureService featureService;
 
 	@Override
-	public void addFunctionality(FunctionalityDto funcDto) {
-		Functionality func = mapper.map(funcDto, Functionality.class);
+	public void addFunctionality(FunctionalityDto funcDto) 
+{
+		//Functionality func = mapper.map(funcDto, Functionality.class);
+		ObjectMapper mapper = new ObjectMapper();
+ 
+		try {
+	        String jsonString = "{ \"scenario\": { \"given\": [\"precondition1\"], \"when\": [\"event1\"], \"then\": [\"outcome1\"] }, \"feature_name\": \"My Feature\", \"functionality_name\": \"My Functionality\", \"steps\": \"step1\", \"test_case_description\": \"Description\", \"FN\":\" case id with date\",\"tags\": \"tag1\" }";
+
+	        JsonNode details = mapper.readTree(jsonString);
+	        
+	        add(details);
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+		//add(details);
+	
 //		func.setFeatureId(funcDto.getFeatureId());
 //		func.setFeatureName(funcDto.getFeatureName());
 //		func.setFunctionality(funcDto.getFunctionality());
 //		func.setSteps(funcDto.getSteps());
 //		func.setTestCaseDescription(funcDto.getTestCaseDescription());
 //		func.setTags(funcDto.getTags());
-		functionalityRepo.save(func);
+		//functionalityRepo.save(func);
 //		return new FunctionalityDto(func.getId(), func.getName(), func.getTags(), func.getFeatureName());
 	}
 
@@ -83,7 +100,7 @@ public class FunctionalityServiceImpl implements FunctionalityService {
 //		for (Functionality cas : cases) {
 //			funcList.add(mapper.map(cas, FunctionalityDto.class));
 //		}
-		return cases.stream().map(x -> mapper.map(x, FunctionalityDto.class)).toList();
+		return cases.stream().map(x -> mapper.map(x, FunctionalityDto.class)).collect(Collectors.toList());
 //		return funcList;
 //		return cases.stream()
 //				.map(x -> mapper.map(x, Functionality.class))
@@ -106,8 +123,7 @@ public class FunctionalityServiceImpl implements FunctionalityService {
 		if (details == null) {
 			throw new BadRequestException("Request Body looks empty");
 		}
-
-		Feature feature = null;
+		Feature feature = new Feature();
 		if (details.get("scenario") != null) {
 			saveScenario(details);
 			feature = saveFeature(details);
@@ -117,8 +133,8 @@ public class FunctionalityServiceImpl implements FunctionalityService {
 		func.setFeatureId(feature.getId());
 		func.setFeatureName(feature.getCode());
 		func.setFuncName(details.get("functionality_name").asText());
-		func.setSteps(details.get("steps").asText());
 		func.setCaseDescription(details.get("test_case_description").asText());
+        func.setSteps(Arrays.asList(details.get("steps").asText()));
 		func.setCaseId("FN" + new Date().getYear() + (00000 + (functionalityRepo.count() + 1)));
 		func.setTags(Arrays.asList(details.get("tags").asText()));
 		functionalityRepo.save(func);

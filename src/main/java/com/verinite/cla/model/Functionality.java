@@ -36,7 +36,7 @@ public class Functionality {
 
 	private String preRequisite;
 
-	private String steps;
+	private List<String> steps;
 
 	private String priority;
 
@@ -128,12 +128,12 @@ public class Functionality {
 		this.preRequisite = preRequisite;
 	}
 
-	public String getSteps() {
+	public List<String> getSteps() {
 		return steps;
 	}
 
-	public void setSteps(String steps) {
-		this.steps = steps;
+	public void setSteps(List<String> list) {
+		this.steps = list;
 	}
 
 	public String getPriority() {

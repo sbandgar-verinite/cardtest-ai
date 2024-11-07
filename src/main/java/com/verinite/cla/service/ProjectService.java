@@ -9,11 +9,11 @@ public interface ProjectService {
 
 	public Project addProject(ProjectDto projectDto);
 
-	public Project updateProject(ProjectDto project);
+	public Project updateProject(String id, ProjectDto project);
 
 	public Project findProjectById(String id);
 
-	public List<Project> findAllProject();
+	public List<ProjectDto> findAllProject();
 
 	public void deleteProject(String id);
 }

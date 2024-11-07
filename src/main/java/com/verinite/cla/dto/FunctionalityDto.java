@@ -1,11 +1,13 @@
 package com.verinite.cla.dto;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(value = Include.NON_EMPTY)
+
 public class FunctionalityDto {
 
 	private String id;
@@ -30,7 +32,7 @@ public class FunctionalityDto {
 
 	private String preRequisite;
 
-	private String steps;
+	private List<String> steps;
 
 	private String priority;
 
@@ -133,11 +135,11 @@ public class FunctionalityDto {
 		this.preRequisite = preRequisite;
 	}
 
-	public String getSteps() {
+	public List<String> getSteps() {
 		return steps;
 	}
 
-	public void setSteps(String steps) {
+	public void setSteps(List<String> steps) {
 		this.steps = steps;
 	}
 

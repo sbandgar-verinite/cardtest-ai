@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 
+import com.verinite.cla.dto.IterationDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -70,9 +71,10 @@ public class SetupController {
 	}
 
 	@GetMapping(value = "/projects/{projectId}/runplans")
-	public List<RunPlanDto> getAllRunPLan(@PathVariable String projectId) throws ParseException {
-		return runPlanService.findAllRunPlanByProjectId(projectId);
+	public List<IterationDto> getAllIterations(@PathVariable String projectId) throws ParseException {
+		return runPlanService.findAllIterationByProjectId(projectId);
 	}
+
 
 	@PostMapping(value = "/projects/{projectId}/runplans/{runPlanId}/feature-files")
 	public ResponseEntity<StatusResponse> createFeatureFileForCurrentRun(@PathVariable String projectId,

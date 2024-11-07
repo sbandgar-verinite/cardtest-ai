@@ -7,22 +7,29 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import com.verinite.cla.dto.IterationDto;
 import com.verinite.cla.dto.RunPlanDto;
 import com.verinite.cla.dto.StatusDto;
+import com.verinite.cla.entity.Iteration;
 import com.verinite.cla.entity.RunPlan;
+import com.verinite.cla.repository.IterationRepository;
 import com.verinite.cla.repository.RunPlanRepository;
 import com.verinite.cla.service.ProjectService;
 import com.verinite.cla.service.RunPlanService;
+import com.verinite.cla.service.SetupService;
 import com.verinite.commons.controlleradvice.BadRequestException;
 
 @Service
@@ -35,6 +42,13 @@ public class RunPlanServiceImpl implements RunPlanService {
 
 	@Autowired
 	private ModelMapper mapper;
+
+	@Autowired
+	@Lazy
+	SetupService setupService;
+
+	@Autowired
+	IterationRepository iterationRepository;
 
 	@Autowired
 	private ProjectService projService;
@@ -64,13 +78,51 @@ public class RunPlanServiceImpl implements RunPlanService {
 	}
 
 	@Override
-	public List<RunPlanDto> findAllRunPlanByProjectId(String projectId) {
-		List<RunPlan> runPlanList = runPlanRepository.getAllRunPlanByProjectId(projectId);
-		List<RunPlanDto> runPlanDtoList = new ArrayList<>();
-		for (RunPlan runPlan : runPlanList) {
-			runPlanDtoList.add(mapper.map(runPlan, RunPlanDto.class));
+	public List<IterationDto> findAllIterationByProjectId(String projectId) {
+
+		List<Iteration> iterationsByProjectId = iterationRepository.findAllByProjectId(projectId);
+		List<IterationDto> iterationDtos = new ArrayList<>();
+
+		for (Iteration iteration : iterationsByProjectId) {
+
+			List<RunPlan> runPlanByIterationId = runPlanRepository.findByItnSeq(iteration.getId());
+			List<RunPlanDto> runPlanDtoList = new ArrayList<>();
+			for (RunPlan runPlan : runPlanByIterationId) {
+				runPlanDtoList.add(mapper.map(runPlan, RunPlanDto.class));
+			}
+			IterationDto iterationDto = mapper.map(iteration, IterationDto.class);
+			
+			runPlanDtoList.sort(Comparator.comparing(RunPlanDto::getSequenceNumber));
+
+			iterationDto.setRunPlanDtoList(runPlanDtoList);
+			iterationDtos.add(iterationDto);
 		}
-		return runPlanDtoList;
+
+		return iterationDtos ;
+
+//		List<RunPlan> runPlanList = runPlanRepository.getAllRunPlanByProjectId(projectId);
+//		List<RunPlanDto> runPlanDtoList = new ArrayList<>();
+//		for (RunPlan runPlan : runPlanList) {
+//			runPlanDtoList.add(mapper.map(runPlan, RunPlanDto.class));
+//		}
+//		return runPlanDtoList;
+
+
+//		List<Iteration> allByProjectId = iterationRepository.findAllByProjectId(projectId);
+//		List<IterationDto> iterationDtos = new ArrayList<>();
+//		if(!allByProjectId.isEmpty()) {
+//			for (Iteration it : allByProjectId) {
+//				iterationDtos.add(mapper.map(it, IterationDto.class));
+//			}
+//		}
+//		else {
+//			throw new BadRequestException("Iterations Not Found");
+//		}
+//
+//
+//
+//		return iterationDtos;
+
 	}
 
 	@Override
@@ -149,11 +201,11 @@ public class RunPlanServiceImpl implements RunPlanService {
 		if (!CollectionUtils.isEmpty(runPlans)) {
 			if (Objects.isNull(iterationId) || iterationId <= 0) {
 				return runPlans.stream().map(x -> mapper.map(x, RunPlanDto.class))
-						.sorted((x, y) -> x.getSequenceNumber() - y.getSequenceNumber()).toList();
+						.sorted((x, y) -> x.getSequenceNumber() - y.getSequenceNumber()).collect(Collectors.toList());
 			} else {
 				return runPlans.stream().filter(x -> x.getItnSeq().equals(iterationId))
 						.map(x -> mapper.map(x, RunPlanDto.class))
-						.sorted((x, y) -> x.getSequenceNumber() - y.getSequenceNumber()).toList();
+						.sorted((x, y) -> x.getSequenceNumber() - y.getSequenceNumber()).collect(Collectors.toList());
 			}
 		}
 		return new ArrayList<>();

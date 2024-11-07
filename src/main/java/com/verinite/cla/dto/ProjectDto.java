@@ -15,9 +15,9 @@ public class ProjectDto {
 	private Long startDate;
 	private Boolean batchJob;
 	private Boolean isFlowAuto;
-	private List<Iteration> iterations;
+	private List<IterationDto> iterations;
 	private Map<String, String> attributes;
-
+		
 	public ProjectDto(String name, String tenantId, List<String> features, Long startDate,
 			List<Integer> validBillingCycles, String billingCycleSelectionCriteria, int dueDays
 			, Map<String, String> attributes
@@ -82,10 +82,16 @@ public class ProjectDto {
 	public void setIsFlowAuto(Boolean isFlowAuto) {
 		this.isFlowAuto = isFlowAuto;
 	}
-	public List<Iteration> getIterations() {
+	public List<IterationDto> getIterations() {
 		return iterations;
 	}
-	public void setIterations(List<Iteration> iterations) {
+	public void setIterations(List<IterationDto> iterations) {
 		this.iterations = iterations;
 	}
-}
+	
+	
+	}
+
+
+
+

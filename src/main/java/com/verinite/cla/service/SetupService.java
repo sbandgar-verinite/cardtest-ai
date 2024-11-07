@@ -59,6 +59,7 @@ import com.verinite.cla.entity.RunPlan;
 import com.verinite.cla.entity.Scenario;
 import com.verinite.cla.model.RunConfig;
 import com.verinite.cla.model.RunScenario;
+import com.verinite.cla.repository.IterationRepository;
 import com.verinite.cla.service.impl.FileGenerationService;
 import com.verinite.cla.util.PropertiesConfig;
 import com.verinite.cla.util.RunPlanStatus;
@@ -126,6 +127,9 @@ public class SetupService {
 	@Autowired
 	private ResourceLoader resourceLoader;
 
+	@Autowired
+	private IterationRepository iterRepo;
+
 	public JsonNode readFromJson() {
 		Resource resource = resourceLoader.getResource("classpath:data.json");
 		try {
@@ -175,10 +179,11 @@ public class SetupService {
 //		project = projectService.findProjectById(project);
 		Optional<Config> runConf = configRepo.findByKeyName("RUN_CONFIG");
 		Feature feature = new Feature();
-
-		Long startDate = project.getStartDate();
-
 		for (Iteration iteration : project.getIterations()) {
+			if (iteration.getIsGenerated()) {
+				continue;
+			}
+			Long startDate = iteration.getStartDate();
 			Multimap<Date, Map<String, RunScenario>> listOfRunScenarios = LinkedHashMultimap.create();
 			for (String featureCode : iteration.getFeatures()) {
 				feature = featureService.findFeatureByCode(featureCode);
@@ -229,12 +234,15 @@ public class SetupService {
 
 				runPlan.setPreRunScripts(prerunScenarios);
 				runPlan.setPostRunScripts(postrunScenarios);
-				runPlan.setItnSeq(iteration.getSequence());
+				runPlan.setItnSeq(iteration.getId());
 				runPlan.setStatus(Status.CREATED.getStatus());
 				runPlanService.addRunPlan(runPlan);
 			}
+			
+			iteration.setIsGenerated(Boolean.TRUE);
+			
 		}
-
+		iterRepo.saveAll(project.getIterations());
 		return new StatusResponse("Success", HttpStatus.OK.value(), "RunPlans Created Successfully");
 	}
 
@@ -652,7 +660,7 @@ public class SetupService {
 		HttpEntity<String> entityt = new HttpEntity<String>(headerst);
 
 		String fullUrl = propsConfig.getJenkinsUrl() + "/job/" + propsConfig.getJenkinsJobName()
-				+ "/buildWithParameters?RUN_PLAN_ID=" + runPlanId + "&SCENARIO_TYPE=" + type;
+				+ "/buildWithParameters?RUN_PLAN_ID=" + runPlanId + "&SCENARIO_TYPE=" + type + "&APP_URL=" + propsConfig.getHostUrl();
 		ResponseEntity<String> responseEntityt = restTemplate.exchange(fullUrl, HttpMethod.POST, entityt, String.class);
 
 		HttpHeaders respHeaders = responseEntityt.getHeaders();
@@ -694,16 +702,17 @@ public class SetupService {
 			throw new BadRequestException("Type Not Specified");
 		Project project = projectService.findProjectById(runPlan.getProjectId());
 		if (project.getIsFlowAuto()) {
-			coreExecutionAsync(runPlan, type);
+			coreExecutionAsync(runPlan, type, project.getIsFlowAuto());
 			return runPlanService.checkStatus(runPlanId);
 		} else
-			return coreExecution(runPlan, type);
+			return coreExecution(runPlan, type, project.getIsFlowAuto());
 	}
 
-	private StatusDto coreExecution(RunPlan runPlan, String type) throws InterruptedException {
+	private StatusDto coreExecution(RunPlan runPlan, String type, Boolean isFlowAuto) throws InterruptedException {
 		CamundaRequest request = new CamundaRequest();
 //		request.setProjectId(runPlan.getProjectId());
 //		request.setRunPlanId(runPlan.getId());
+		request.setIsFlowAuto(isFlowAuto);
 		request.setType(type.toLowerCase());
 		CamundaResponse response = null;
 		StatusDto statusDto = new StatusDto();
@@ -724,10 +733,11 @@ public class SetupService {
 	}
 
 	@Async
-	private void coreExecutionAsync(RunPlan runPlan, String type) throws InterruptedException {
+	private void coreExecutionAsync(RunPlan runPlan, String type, Boolean isFlowAuto) throws InterruptedException {
 		CamundaRequest request = new CamundaRequest();
 //		request.setProjectId(runPlan.getProjectId());
 //		request.setRunPlanId(runPlan.getId());
+		request.setIsFlowAuto(isFlowAuto);
 		request.setType(type.toLowerCase());
 		CamundaResponse response = null;
 		if (type.equalsIgnoreCase(Constants.PRE_RUN_PLAN)) {

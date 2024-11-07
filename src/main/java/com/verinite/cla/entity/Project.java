@@ -35,7 +35,7 @@ public class Project {
 	@Type(JsonType.class)
 	private List<String> features;
 
-	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
 	private List<Iteration> iterations;
 
 	private Long startDate;

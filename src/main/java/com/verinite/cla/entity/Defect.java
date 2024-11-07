@@ -1,21 +1,11 @@
 package com.verinite.cla.entity;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-
-import io.hypersistence.utils.hibernate.type.json.JsonType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Table;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "defect")
@@ -35,6 +25,21 @@ public class Defect {
 	private String severity;
 
 	private String details;
+
+	public Defect() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public Defect(String id, String defectId, String caseId, String caseModule, String severity, String details) {
+		super();
+		this.id = id;
+		this.defectId = defectId;
+		this.caseId = caseId;
+		this.caseModule = caseModule;
+		this.severity = severity;
+		this.details = details;
+	}
 
 	public String getId() {
 		return id;
@@ -83,4 +88,5 @@ public class Defect {
 	public void setDetails(String details) {
 		this.details = details;
 	}
+
 }

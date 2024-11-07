@@ -46,7 +46,7 @@ public class RunPlan {
 	private Boolean isPreUploadEnable = Boolean.FALSE;
 	private Boolean isPostExecEnable = Boolean.FALSE;
 	private Boolean isPostUploadEnable = Boolean.FALSE;
-	private Integer itnSeq;
+	private String itnSeq;
 
 	public RunPlan(String id, int sequenceNumber, String projectId, String description, Long runDate,
 			Integer billingCycleConsidered, List<RunScenario> preRunScripts, List<RunScenario> postRunScripts,
@@ -243,11 +243,11 @@ public class RunPlan {
 		this.isPostUploadEnable = isPostUploadEnable;
 	}
 
-	public Integer getItnSeq() {
+	public String getItnSeq() {
 		return itnSeq;
 	}
 
-	public void setItnSeq(Integer itnSeq) {
+	public void setItnSeq(String itnSeq) {
 		this.itnSeq = itnSeq;
 	}
 }
