@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.verinite.cla.entity.Feature;
+import com.verinite.cla.entity.Iteration;
 import com.verinite.cla.entity.Project;
 import com.verinite.cla.entity.RunData;
 import com.verinite.cla.entity.Scenario;
@@ -90,7 +91,6 @@ public class RunDataServiceImpl implements RunDataService {
 	@Transactional
 	public void generateData(String projectId) {
 		Project project = projectService.findProjectById(projectId);
-
 		for (String feat : project.getFeatures()) {
 			Feature feature = featureService.findFeatureByCode(feat);
 			if (feature == null) {
@@ -107,7 +107,7 @@ public class RunDataServiceImpl implements RunDataService {
 
 			List<Scenario> scenarioList = scenarioService.findAllScenarios(scenarios);
 			Set<String> entities = new HashSet<>();
-//			String entity = "";
+//				String entity = "";
 			String regex = "<([^%>\s]+)>";
 			Pattern pattern = Pattern.compile(regex);
 			Map<String, JsonNode> reqObj = new HashMap<>();
@@ -116,12 +116,12 @@ public class RunDataServiceImpl implements RunDataService {
 				steps.addAll(x.getGivenStatements());
 				steps.addAll(x.getThenOutcomes());
 				steps.addAll(x.getWhenConditions());
-//				entity = x.getEntitiesRequired().get(0);
+//					entity = x.getEntitiesRequired().get(0);
 				entities.addAll(x.getEntitiesRequired());
 				createInputRequestForDG(steps, pattern, x.getEntitiesRequired().get(0), reqObj);
 			}
 
-//			Map<String, JsonNode> reqObj = createInputRequestForDG(steps, pattern, entity);
+//				Map<String, JsonNode> reqObj = createInputRequestForDG(steps, pattern, entity);
 			JsonNode response = restTemplate.postForObject(dgBaseUrl + "/api/dg/v1/project/1/generate?output=json",
 					reqObj, JsonNode.class);
 
