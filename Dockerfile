@@ -5,7 +5,7 @@ FROM openjdk:11-jre-slim
 WORKDIR /app
 
 # Copy the JAR file into the container
-COPY target/cardtest-ai-1.0-SNAPSHOT.jar app.jar
+COPY target/cardtest-ai-0.0.1-SNAPSHOT.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 
